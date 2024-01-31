@@ -17,3 +17,4 @@ __pycache__/
 /Face_Enhancement/models/networks/sync_batchnorm/
 /Face_Detection/shape_predictor_68_face_landmarks.dat
 /Global/checkpoints/
+/.env

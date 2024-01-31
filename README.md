@@ -143,7 +143,7 @@ docker build -t oldphoto .
 1. In a terminal goto the root of the repository
 2. Run 
 ```
-docker run --env-file=.env -e HOST=localhost -p 8000:8000 -p 5000:5000 oldphoto
+docker run --env-file=.env -e HOST=localhost -v media-volume:/app/media:rw -p 8000:8000 -p 5000:5000 oldphoto
 ```
 3. Wait till the container is running
 4. Open a browser and go to 
