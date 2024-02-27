@@ -121,7 +121,7 @@ def modify(image_filename=None, cv2_frame=None, scratched=None):
     if gpu == -1:
         print('No suitable GPU found. Setting gpu = -1')
     else:
-        print('Selected GPU:', gpu)
+        print('Selected GPU:', gpu, torch.cuda.get_device_name(gpu), torch.cuda.mem_get_info(gpu))
     gpu = str(gpu)
 
     checkpoint_name = "Setting_9_epoch_100"

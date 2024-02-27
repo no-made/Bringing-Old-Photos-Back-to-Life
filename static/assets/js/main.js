@@ -306,43 +306,10 @@ $(document).ready(function () {
                         }
                     }
 
-                    // for (let i = 0; i < data["images"].length; i++) {
-                    //     const file_name = data["images"][i].split("\\").pop()
-                    //     const name = file_name.split(".")[0]
-                    //     const ext = file_name.split(".")[1]
-                    //     const input_image = document.createElement("img");
-                    //     const output_image = document.createElement("img");
-                    //     const paragon_image = document.createElement("img");
-                    //     // console.log('django media url: ', DJANGO_MEDIA_URL)
-                    //     output_image.src = DJANGO_MEDIA_URL + user_id + '/' + name + '_output.' + ext;
-                    //     input_image.src = DJANGO_MEDIA_URL + user_id + '/' + name + '_input.' + ext;
-                    //     paragon_image.src = DJANGO_MEDIA_URL + user_id + '/' + name + '_paragon.' + ext;
-                    //     output_image.height = input_image.height = paragon_image.height = 200;
-                    //
-                    //     const output_strips = document.createElement("div");
-                    //     output_strips.classList.add("output_strips");
-                    //     output_strips.onclick = function () {
-                    //         let enlarged = $("#enlarged");
-                    //         enlarged.html("<img src='" + input_image.src + "' class='enlarged-image'>" +
-                    //             "<img src='" + paragon_image.src + "' class='enlarged-image'>" +
-                    //             "<img src='" + output_image.src + "' class='enlarged-image'>")
-                    //
-                    //         enlarge_images()
-                    //         enlarged.removeClass('hidden_tag')
-                    //         enlarged.click(function () {
-                    //             enlarged.addClass('hidden_tag')
-                    //         })
-                    //     }
-                    //     // output_strips.style = "display:flex;flex-wrap:wrap;justify-content:center;margin: 10px;"
-                    //     output_strips.append(input_image);
-                    //     output_strips.append(paragon_image);
-                    //     output_strips.append(output_image);
-                    //     output_images.append(output_strips);
-                    // }
                     const download_button = document.getElementById("download_button");
                     const restart_button = document.getElementById("restart_button");
-                    download_button.addEventListener("click", function () {
-                        downloadAllImages(user_id, protocol, host);
+                    download_button.addEventListener("click", async function () {
+                        await downloadAllImages(user_id, protocol, host);
                     });
                     restart_button.addEventListener("click", function () {
                         //delete temp folder
@@ -390,40 +357,59 @@ $(document).ready(function () {
 
 });
 
-function downloadImage(url, filename) {
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'images/' + filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
 async function downloadAllImages(user, protocol, host) {
     const images = document.querySelectorAll("#output-images img");
     const downloadPromises = [];
+
     for (let i = 0; i < images.length; i++) {
         const url = images[i].src;
         const filename = url.split("/").pop();
+
         if (filename.includes('output')) {
             downloadPromises.push(downloadImage(url, filename));
         }
     }
-    await fetch(`${protocol}://${host}:8000/delete/folder/`, {
-        method: 'DELETE',
-        headers: {
-            'X-User-Id': user_id,
-            'Access-Control-Allow-Origin': '*'
-        },
-    })
+
+    await Promise.all(downloadPromises)
+        .then(() => {
+            return fetch(`${protocol}://${host}:8000/delete/folder/`, {
+                method: 'DELETE',
+                headers: {
+                    'X-User-Id': user_id,
+                    'Access-Control-Allow-Origin': '*'
+                },
+            });
+        })
         .then(response => {
             console.log(response);
         })
         .catch(error => {
             console.error(error);
         });
+
     location.reload();
 }
+
+async function downloadImage(url, filename) {
+    try {
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error('Image not found or could not be downloaded.');
+        }
+
+        const blob = await response.blob();
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'images/' + filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    } catch (error) {
+        console.error(error);
+    }
+}
+
 
 function checkboxChanged(file_name, number, which) {
     // Check if 'scratched' checkbox is selected
