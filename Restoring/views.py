@@ -20,9 +20,10 @@ input_scratched = './media/input_scratched_images'
 input_hd = './media/input_hd_images'
 media_folder = './media'
 output_folder = './media/output_images'
-os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:256, garbage_collection_threshold:0.5"
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:128,garbage_collection_threshold:0.8"
 logger = logging.getLogger(__name__)
 
+checkpoint_name = "Setting_9_epoch_100"
 
 def index(response):
     return HttpResponse("This message is from Restoring App")
@@ -97,14 +98,37 @@ def upload_image(request):
 
 
 def modify(image_filename=None, cv2_frame=None, scratched=None):
+    gpu = get_gpu()
 
-    def run_cmd(command):
-        try:
-            call(command, shell=True)
-        except KeyboardInterrupt:
-            print("Process interrupted")
-            sys.exit(1)
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+    main_environment = os.getcwd()
+    # Stage 1: Overall Quality Improve
+    stage_1_processing(main_environment, gpu)
 
+    # Stage 2: Face Detection
+    stage_2_processing(output_folder)
+
+    # Stage 3: Face Restore
+    stage_3_processing(main_environment, output_folder, gpu)
+
+    # Stage 4: Warp back
+    stage_4_processing(main_environment, output_folder)
+
+    print("All the processing is done. Please check the results.")
+    os.chdir(".././")
+
+
+def run_cmd(command):
+    torch.cuda.empty_cache()
+    try:
+        call(command, shell=True)
+    except KeyboardInterrupt:
+        print("Process interrupted")
+        sys.exit(1)
+
+
+def get_gpu():
     gpu = -1
     if torch.cuda.is_available():
         num_gpus = torch.cuda.device_count()
@@ -117,146 +141,169 @@ def modify(image_filename=None, cv2_frame=None, scratched=None):
                 gpu = i
                 print('GPU with more than 4 GB of RAM:', i, torch.cuda.mem_get_info(i))
                 break
-
+        torch.cuda.memory_allocated()
+        torch.cuda.max_memory_allocated()
     if gpu == -1:
         print('No suitable GPU found. Setting gpu = -1')
     else:
         print('Selected GPU:', gpu, torch.cuda.get_device_name(gpu), torch.cuda.mem_get_info(gpu))
-    gpu = str(gpu)
+    return str(gpu)
 
-    checkpoint_name = "Setting_9_epoch_100"
 
-    # resolve relative paths before changing directory
+def create_directory_if_not_exists(directory):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
-    main_environment = os.getcwd()
 
+def stage_1_processing(main_env, gpu):
     # Stage 1: Overall Quality Improve
-    logger.debug('Running Stage 1.')
+    # logger.debug('Running Stage 1.')
     print("Running Stage 1: Overall restoration")
-    os.chdir(os.path.join(main_environment, "Global"))
+
+    os.chdir(os.path.join(main_env, "Global"))
     print("current directory: ", os.getcwd())
     print("output folder: ", output_folder)
+
     stage_1_input_dir = os.path.join("..", input_folder)
     stage_1_scratched_dir = os.path.join("..", input_scratched)
     stage_1_hd_dir = os.path.join("..", input_hd)
     stage_1_output_dir = os.path.join("..", output_folder, "stage_1_restore_output")
     print("stage 1 output folder: ", stage_1_output_dir)
-    if not os.path.exists(stage_1_output_dir):
-        os.makedirs(stage_1_output_dir)
-    if not len(os.listdir(stage_1_scratched_dir)) == 0:
-        mask_dir = os.path.join(stage_1_output_dir, "masks")
-        new_input = os.path.join(mask_dir, "input")
-        new_mask = os.path.join(mask_dir, "mask")
-        stage_1_command_1 = ("python detection.py --test_path " + stage_1_scratched_dir + " --output_dir " + mask_dir
-                             + " --input_size full_size" + " --GPU " + gpu)
-        stage_1_command_2 = ("python test.py --Scratch_and_Quality_restore --test_input " + new_input + " --test_mask "
-                             + new_mask + " --outputs_dir " + stage_1_output_dir + " --gpu_ids " + gpu)
-        run_cmd(stage_1_command_1)
-        # gc.collect()
-        run_cmd(stage_1_command_2)
-        # gc.collect()
-    if not len(os.listdir(stage_1_hd_dir)) == 0:
-        mask_dir = os.path.join(stage_1_output_dir, "masks_hd")
-        new_input = os.path.join(mask_dir, "input")
-        new_mask = os.path.join(mask_dir, "mask")
-        stage_1_command_1 = ("python detection.py --test_path " + stage_1_hd_dir + " --output_dir " + mask_dir
-                             + " --input_size full_size" + " --GPU " + gpu)
-        stage_1_command_2 = ("python test.py --Scratch_and_Quality_restore --test_input " + new_input + " --test_mask "
-                             + new_mask + " --outputs_dir " + stage_1_output_dir + " --gpu_ids " + gpu + " --HR")
-        run_cmd(stage_1_command_1)
-        # gc.collect()
-        run_cmd(stage_1_command_2)
-        # gc.collect()
-    if not len(os.listdir(stage_1_input_dir)) == 0:
-        stage_1_command = (
-            "python test.py --test_mode Full --Quality_restore --test_input "
-            + stage_1_input_dir
-            + " --outputs_dir "
-            + stage_1_output_dir
-            + " --gpu_ids "
-            + gpu
-        )
-        run_cmd(stage_1_command)
-        # gc.collect()
 
-    # Solve the case when there is no face in the old photo
+    create_directory_if_not_exists(stage_1_output_dir)
+
+    # Process scratched images
+    process_image(stage_1_scratched_dir, stage_1_output_dir, gpu)
+
+    # Process HD images
+    process_image(stage_1_hd_dir, stage_1_output_dir, gpu, is_hd=True)
+
+    # Process regular input images
+    process_image(stage_1_input_dir, stage_1_output_dir, gpu, is_hd=False)
+
     stage_1_results = os.path.join(stage_1_output_dir, "restored_image")
     stage_4_output_dir = os.path.join("..", output_folder, "final_output")
-    print("current directory: ", os.getcwd())
-    if not os.path.exists(stage_4_output_dir):
-        os.makedirs(stage_4_output_dir)
-    for x in os.listdir(stage_1_results):
-        img_dir = os.path.join(stage_1_results, x)
-        shutil.copy(img_dir, stage_4_output_dir)
+    create_directory_if_not_exists(stage_4_output_dir)
+
+    # Copy results to the final output folder
+    copy_results_to_final_output(stage_1_results, stage_4_output_dir)
 
     print("Finish Stage 1 ...")
     print("\n")
 
+
+def stage_2_processing(out_folder):
     # Stage 2: Face Detection
     logger.debug('Running Stage 2.')
     print("Running Stage 2: Face Detection")
     os.chdir(".././Face_Detection")
     print("stage 2 current dir: ", os.getcwd())
-    stage_2_input_dir = os.path.join(stage_1_output_dir, "restored_image")
-    stage_2_output_dir = os.path.join("..", output_folder, "stage_2_detection_output")
+    stage_2_input_dir = os.path.join("..", out_folder, "stage_1_restore_output", "restored_image")
+    stage_2_output_dir = os.path.join("..", out_folder, "stage_2_detection_output")
     print("stage 2 input folder: ", stage_2_input_dir)
     print("stage 2 output folder: ", stage_2_output_dir)
-    if not os.path.exists(stage_2_output_dir):
-        os.makedirs(stage_2_output_dir)
-    stage_2_command = ("python detect_all_dlib.py --url " + stage_2_input_dir + " --save_url " + stage_2_output_dir)
+
+    create_directory_if_not_exists(stage_2_output_dir)
+
+    stage_2_command = (
+        f"python detect_all_dlib.py --url {stage_2_input_dir} --save_url {stage_2_output_dir}"
+    )
+
     run_cmd(stage_2_command)
-    # gc.collect()
     print("Finish Stage 2 ...")
     print("\n")
 
+
+def stage_3_processing(main_environment, out_folder, gpu):
     # Stage 3: Face Restore
     logger.debug('Running Stage 3.')
     print("Running Stage 3: Face Enhancement")
     os.chdir(os.path.join(main_environment, "Face_Enhancement"))
     # os.chdir(".././Face_Enhancement")
     print("stage 3 current dir: ", os.getcwd())
+
     stage_3_input_mask = "./"
-    stage_3_input_face = stage_2_output_dir
-    stage_3_output_dir = os.path.join("..", output_folder, "stage_3_face_output")
+    stage_3_input_face = os.path.join("..", out_folder, "stage_2_detection_output")
+    stage_3_output_dir = os.path.join("..", out_folder, "stage_3_face_output")
     print("stage 3 input face folder: ", stage_3_input_face)
     print("stage 3 input mask folder: ", stage_3_input_mask)
     print("stage 3 output folder: ", stage_3_output_dir)
-    if not os.path.exists(stage_3_output_dir):
-        os.makedirs(stage_3_output_dir)
-    stage_3_command = ("python test_face.py --dataroot ./ --old_face_folder " + stage_3_input_face + " --old_face_label_folder "
-        + stage_3_input_mask + " --tensorboard_log --name " + checkpoint_name + " --gpu_ids " + gpu
-        + " --load_size 256 --label_nc 18 --no_instance --preprocess_mode resize --batchSize 4 --results_dir "
-        + stage_3_output_dir + " --no_parsing_map")
+
+    create_directory_if_not_exists(stage_3_output_dir)
+
+    stage_3_command = (
+        f"python test_face.py --dataroot ./ --old_face_folder {stage_3_input_face} "
+        f"--old_face_label_folder {stage_3_input_mask} --tensorboard_log --name {checkpoint_name} "
+        f"--gpu_ids {gpu} --load_size 256 --label_nc 18 --no_instance "
+        f"--preprocess_mode resize --batchSize 4 --results_dir {stage_3_output_dir} --no_parsing_map"
+    )
+
     run_cmd(stage_3_command)
-    # gc.collect()
     print("Finish Stage 3 ...")
     print("\n")
 
+
+def stage_4_processing(main_environment, out_folder):
     # Stage 4: Warp back
     logger.debug('Running Stage 4.')
     print("Running Stage 4: Blending")
     os.chdir(os.path.join(main_environment, "Face_Detection"))
     print("stage 4 current dir: ", os.getcwd())
-    stage_4_input_image_dir = os.path.join(stage_1_output_dir, "restored_image")
-    stage_4_input_face_dir = os.path.join(stage_3_output_dir, "each_img")
-    stage_4_output_dir = os.path.join("..", output_folder, "final_output")
+    stage_4_input_image_dir = os.path.join("..", out_folder, "stage_1_restore_output", "restored_image")
+    stage_4_input_face_dir = os.path.join("..", out_folder, "stage_3_face_output", "each_img")
+    stage_4_output_dir = os.path.join("..", out_folder, "final_output")
+
     print("stage 4 input image folder: ", stage_4_input_image_dir)
     print("stage 4 input face folder: ", stage_4_input_face_dir)
     print("stage 4 output folder: ", stage_4_output_dir)
-    if not os.path.exists(stage_4_output_dir):
-        os.makedirs(stage_4_output_dir)
-    stage_4_command = ("python align_warp_back_multiple_dlib.py --origin_url " + stage_4_input_image_dir
-        + " --replace_url " + stage_4_input_face_dir + " --save_url " + stage_4_output_dir )
+
+    create_directory_if_not_exists(stage_4_output_dir)
+
+    stage_4_command = (
+        f"python align_warp_back_multiple_dlib.py --origin_url {stage_4_input_image_dir} "
+        f"--replace_url {stage_4_input_face_dir} --save_url {stage_4_output_dir}"
+    )
+
     run_cmd(stage_4_command)
-    # gc.collect()
     print("Finish Stage 4 ...")
     print("\n")
 
-    print("All the processing is done. Please check the results.")
-    os.chdir(".././")
 
+def copy_results_to_final_output(stage_1_results, stage_4_output_dir):
+    for x in os.listdir(stage_1_results):
+        img_dir = os.path.join(stage_1_results, x)
+        shutil.copy(img_dir, stage_4_output_dir)
+
+
+def process_image(input_dir, output_dir, gpu, is_hd=False):
+    if 'input_images' in input_dir and not len(os.listdir(input_dir)) == 0:
+        stage_1_command = (
+                "python test.py --test_mode Full --Quality_restore --test_input "
+                + input_dir
+                + " --outputs_dir "
+                + output_dir
+                + " --gpu_ids "
+                + gpu
+        )
+        run_cmd(stage_1_command)
+    elif not len(os.listdir(input_dir)) == 0:
+        mask_dir = os.path.join(output_dir, "masks_hd") if is_hd else os.path.join(output_dir, "masks")
+        new_input = os.path.join(mask_dir, "input")
+        new_mask = os.path.join(mask_dir, "mask")
+
+        stage_1_command_1 = (
+            f"python detection.py --test_path {input_dir} --output_dir {mask_dir} "
+            f"--input_size full_size --GPU {gpu}"
+        )
+
+        stage_1_command_2 = (
+            f"python test.py --Scratch_and_Quality_restore --test_input {new_input} "
+            f"--test_mask {new_mask} --outputs_dir {output_dir} --gpu_ids {gpu}"
+            f" {'--HR' if is_hd else ''}"
+        )
+
+        run_cmd(stage_1_command_1)
+        run_cmd(stage_1_command_2)
 
 def delete_and_make_folder(folder):
     if os.path.exists(folder):

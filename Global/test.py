@@ -15,6 +15,7 @@ import torchvision.transforms as transforms
 import numpy as np
 import cv2
 
+
 def data_transforms(img, method=Image.BILINEAR, scale=False):
 
     ow, oh = img.size
@@ -93,10 +94,9 @@ def parameter_set(opt):
 
 
 if __name__ == "__main__":
-
     opt = TestOptions().parse(save=False)
+    print("Testing the model", opt)
     parameter_set(opt)
-
 
     model = Pix2PixHDModel_Mapping()
 
@@ -138,26 +138,33 @@ if __name__ == "__main__":
         print("Now you are processing %s" % (input_name))
 
         if opt.NL_use_mask:
+            print('using mask')
             mask_name = mask_loader[i]
             mask = Image.open(os.path.join(opt.test_mask, mask_name)).convert("RGB")
             if opt.mask_dilation != 0:
+                print('dilating')
                 kernel = np.ones((3,3),np.uint8)
                 mask = np.array(mask)
                 mask = cv2.dilate(mask,kernel,iterations = opt.mask_dilation)
                 mask = Image.fromarray(mask.astype('uint8'))
             origin = input
             input = irregular_hole_synthesize(input, mask)
+            print('transforming')
             mask = mask_transform(mask)
             mask = mask[:1, :, :]  ## Convert to single channel
             mask = mask.unsqueeze(0)
+            print('transforming2')
             input = img_transform(input)
             input = input.unsqueeze(0)
         else:
             if opt.test_mode == "Scale":
+                print('scaling')
                 input = data_transforms(input, scale=True)
             if opt.test_mode == "Full":
+                print('full')
                 input = data_transforms(input, scale=False)
             if opt.test_mode == "Crop":
+                print('crop')
                 input = data_transforms_rgb_old(input)
             origin = input
             input = img_transform(input)

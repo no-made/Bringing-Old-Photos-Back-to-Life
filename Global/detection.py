@@ -124,7 +124,7 @@ def main(config):
         idx += 1
 
         print("processing", image_name)
-
+        torch.cuda.empty_cache()
         scratch_file = os.path.join(config.test_path, image_name)
         if not os.path.isfile(scratch_file):
             print("Skipping non-file %s" % image_name)

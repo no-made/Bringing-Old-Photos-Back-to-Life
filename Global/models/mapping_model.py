@@ -321,7 +321,6 @@ class Pix2PixHDModel_Mapping(BaseModel):
 
         return [ self.loss_filter(loss_feat_l2, loss_G_GAN, loss_G_GAN_Feat, loss_G_VGG, loss_D_real, loss_D_fake,smooth_l1_loss,loss_feat_l2_stage_1), None if not infer else fake_image ]
 
-
     def inference(self, label, inst):
 
         use_gpu = len(self.opt.gpu_ids) > 0
