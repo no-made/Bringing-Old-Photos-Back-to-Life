@@ -66,48 +66,48 @@ class Pix2PixHDModel(BaseModel):
                 self.load_network(self.netE, 'E', opt.which_epoch, pretrained_path)              
 
         # set loss functions and optimizers
-        if self.isTrain:
-            if opt.pool_size > 0 and (len(self.gpu_ids)) > 1:   ## The pool_size is 0!
-                raise NotImplementedError("Fake Pool Not Implemented for MultiGPU")
-            self.fake_pool = ImagePool(opt.pool_size)
-            self.old_lr = opt.lr
-
-            # define loss functions
-            self.loss_filter = self.init_loss_filter(not opt.no_ganFeat_loss, not opt.no_vgg_loss, opt.Smooth_L1)
-            
-            self.criterionGAN = networks.GANLoss(use_lsgan=not opt.no_lsgan, tensor=self.Tensor)   
-            self.criterionFeat = torch.nn.L1Loss()
-
-            # self.criterionImage = torch.nn.SmoothL1Loss()
-            if not opt.no_vgg_loss:
-                self.criterionVGG = networks.VGGLoss_torch(self.gpu_ids)
-                
-
-            self.loss_names = self.loss_filter('G_GAN','G_GAN_Feat','G_VGG', 'G_KL', 'D_real', 'D_fake', 'Smooth_L1')
-
-            # initialize optimizers
-            # optimizer G
-            params = list(self.netG.parameters())
-            if self.gen_features:              
-                params += list(self.netE.parameters())         
-            self.optimizer_G = torch.optim.Adam(params, lr=opt.lr, betas=(opt.beta1, 0.999))                            
-
-            # optimizer D                        
-            params = list(self.netD.parameters())    
-            self.optimizer_D = torch.optim.Adam(params, lr=opt.lr, betas=(opt.beta1, 0.999))
-
-            print("---------- Optimizers initialized -------------")
-
-            if opt.continue_train:
-                self.load_optimizer(self.optimizer_D, 'D', opt.which_epoch)
-                self.load_optimizer(self.optimizer_G, "G", opt.which_epoch)
-                for param_groups in self.optimizer_D.param_groups:
-                    self.old_lr=param_groups['lr']
-
-                print("---------- Optimizers reloaded -------------")
-                print("---------- Current LR is %.8f -------------"%(self.old_lr))
-
-            ## We also want to re-load the parameters of optimizer.
+        # if self.isTrain:
+        #     if opt.pool_size > 0 and (len(self.gpu_ids)) > 1:   ## The pool_size is 0!
+        #         raise NotImplementedError("Fake Pool Not Implemented for MultiGPU")
+        #     self.fake_pool = ImagePool(opt.pool_size)
+        #     self.old_lr = opt.lr
+        #
+        #     # define loss functions
+        #     self.loss_filter = self.init_loss_filter(not opt.no_ganFeat_loss, not opt.no_vgg_loss, opt.Smooth_L1)
+        #
+        #     self.criterionGAN = networks.GANLoss(use_lsgan=not opt.no_lsgan, tensor=self.Tensor)
+        #     self.criterionFeat = torch.nn.L1Loss()
+        #
+        #     # self.criterionImage = torch.nn.SmoothL1Loss()
+        #     if not opt.no_vgg_loss:
+        #         self.criterionVGG = networks.VGGLoss_torch(self.gpu_ids)
+        #
+        #
+        #     self.loss_names = self.loss_filter('G_GAN','G_GAN_Feat','G_VGG', 'G_KL', 'D_real', 'D_fake', 'Smooth_L1')
+        #
+        #     # initialize optimizers
+        #     # optimizer G
+        #     params = list(self.netG.parameters())
+        #     if self.gen_features:
+        #         params += list(self.netE.parameters())
+        #     self.optimizer_G = torch.optim.Adam(params, lr=opt.lr, betas=(opt.beta1, 0.999))
+        #
+        #     # optimizer D
+        #     params = list(self.netD.parameters())
+        #     self.optimizer_D = torch.optim.Adam(params, lr=opt.lr, betas=(opt.beta1, 0.999))
+        #
+        #     print("---------- Optimizers initialized -------------")
+        #
+        #     if opt.continue_train:
+        #         self.load_optimizer(self.optimizer_D, 'D', opt.which_epoch)
+        #         self.load_optimizer(self.optimizer_G, "G", opt.which_epoch)
+        #         for param_groups in self.optimizer_D.param_groups:
+        #             self.old_lr=param_groups['lr']
+        #
+        #         print("---------- Optimizers reloaded -------------")
+        #         print("---------- Current LR is %.8f -------------"%(self.old_lr))
+        #
+        #     ## We also want to re-load the parameters of optimizer.
 
     def encode_input(self, label_map, inst_map=None, real_image=None, feat_map=None, infer=False):             
         if self.opt.label_nc == 0:

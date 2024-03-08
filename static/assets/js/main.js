@@ -207,7 +207,7 @@ $(document).ready(function () {
 
                 const loading_text = document.getElementById('loading-text');
                 const loading = $("#loader");
-                const messages = ['Loading...', 'Please wait...', 'Almost done...', 'Hang tight...', 'Wow, how big it is!', 'Oh my goodness!', 'what a tremendous size it has!'];
+                const messages = ['Loading...', 'Please wait...', 'Almost done...', 'Hang tight...', 'Wow, it is quite large!', 'Oh my goodness!', 'What a tremendous size it is!'];
                 // Get a reference to the loading text field
                 let index = 0;
                 setInterval(() => {
@@ -245,7 +245,7 @@ $(document).ready(function () {
                         const fileName = fileNames[i].name;
                         const is_scratch = fileNames[i].scratched;
                         const is_hd = fileNames[i].hd;
-                        const type = is_hd === 'true' ? '_hd_' : is_scratch === 'true' ? '_scratch_' : '_';
+                        const type = is_hd === 'true' ? '_hd_' : is_scratch === 'true' ? '_scratched_' : '_';
                         console.log('fileName: ', fileName, 'is_scratch: ', is_scratch, 'is_hd: ', is_hd)
                         const input_extension = fileName.split(".")[1];
                         console.log('input_extension: ', input_extension)
@@ -263,6 +263,8 @@ $(document).ready(function () {
                             container.style.margin = "10px";
 
                             const input_image = createImageElement(`${DJANGO_MEDIA_URL}${user_id}/${folder_name}${fileName}`, "100%", null);
+                            input_image.style.filter = "grayscale(100%)";
+                            input_image.style.height = "100%";
 
                             const textOverlay = document.createElement("div");
                             textOverlay.innerHTML = "This image is too big, try to upload a smaller version!";
@@ -313,22 +315,10 @@ $(document).ready(function () {
                     download_button.addEventListener("click", async function () {
                         await downloadAllImages(user_id, protocol, host);
                     });
-                    restart_button.addEventListener("click", function () {
-                        //delete temp folder
-                        fetch(`${protocol}://${host}:8000/delete/folder/`, {
-                            method: 'DELETE',
-                            headers: {
-                                'X-User-Id': user_id,
-                                'Access-Control-Allow-Origin': '*'
-                            },
-                        })
-                            .then(response => {
-                                location.reload();
-                            })
-                            .catch(error => {
-                                console.error(error);
-                            });
-                    })
+                    restart_button.addEventListener("click", async function () {
+
+                        reloadPage();
+                    });
 
                 }).catch(error => {
                     console.error('Error uploading image', error);
@@ -338,22 +328,9 @@ $(document).ready(function () {
         });
 
     });
-    window.addEventListener('beforeunload', function (event) {
-        //delete temp folder
-        fetch(`${protocol}://${host}:8000/delete/folder/`, {
-            method: 'DELETE',
-            headers: {
-                'X-User-Id': user_id,
-                'Access-Control-Allow-Origin': '*'
-            },
-            keepalive: true,
-        })
-            .then(response => {
-                location.reload();
-            })
-            .catch(error => {
-                console.error(error);
-            });
+    window.addEventListener('beforeunload', async function (event) {
+
+        await deleteTempFolder(user_id, protocol, host);
 
     });
 
@@ -374,28 +351,20 @@ async function downloadAllImages(user, protocol, host) {
 
     await Promise.all(downloadPromises)
         .then(() => {
-            return fetch(`${protocol}://${host}:8000/delete/folder/`, {
-                method: 'DELETE',
-                headers: {
-                    'X-User-Id': user_id,
-                    'Access-Control-Allow-Origin': '*'
-                },
-            });
-        })
-        .then(response => {
-            console.log(response);
+            console.log('Temporary folder deleted successfully');
         })
         .catch(error => {
-            console.error(error);
+            console.error('Error deleting temporary folder', error);
         });
 
-    location.reload();
+    // Reload the page
+    reloadPage();
 }
 
 async function downloadImage(url, filename) {
     try {
         const response = await fetch(url);
-
+        console.log('downloading image', filename)
         if (!response.ok) {
             throw new Error('Image not found or could not be downloaded.');
         }
@@ -412,7 +381,31 @@ async function downloadImage(url, filename) {
     }
 }
 
+async function deleteTempFolder(user_id, protocol, host) {
+    try {
+        console.log('deleting temp folder', user_id, protocol, host)
+        const response = fetch(`${protocol}://${host}:8000/delete/folder/`, {
+            method: 'DELETE',
+            headers: {
+                'X-User-Id': user_id,
+                'Access-Control-Allow-Origin': '*'
+            },
+        });
 
+        if (response.ok) {
+            console.log('Temporary folder deleted successfully');
+        } else {
+            console.error('Error deleting temporary folder');
+        }
+    } catch (error) {
+        console.error('Error deleting temporary folder', error);
+    }
+}
+
+// Function to reload the page
+function reloadPage() {
+    location.reload();
+}
 function checkboxChanged(file_name, number, which) {
     // Check if 'scratched' checkbox is selected
     const scratchedCheckbox = document.getElementById(`check_${file_name}`);

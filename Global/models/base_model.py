@@ -11,6 +11,7 @@ class BaseModel(torch.nn.Module):
         return "BaseModel"
 
     def initialize(self, opt):
+        print("BaseModel initialize")
         self.opt = opt
         self.gpu_ids = opt.gpu_ids
         self.isTrain = opt.isTrain

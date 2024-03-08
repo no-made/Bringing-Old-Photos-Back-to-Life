@@ -147,6 +147,7 @@ def str2bool(v):
 
 
 def find_class_in_module(target_cls_name, module):
+    print('module:', module)
     target_cls_name = target_cls_name.replace("_", "").lower()
     clslib = importlib.import_module(module)
     cls = None
@@ -160,7 +161,7 @@ def find_class_in_module(target_cls_name, module):
             % (module, target_cls_name)
         )
         exit(0)
-
+    print('class:', cls)
     return cls
 
 
@@ -173,6 +174,7 @@ def save_network(net, label, epoch, opt):
 
 
 def load_network(net, label, epoch, opt):
+    print("loading the model from %s" % opt.checkpoints_dir, epoch, label)
     save_filename = "%s_net_%s.pth" % (epoch, label)
     save_dir = os.path.join(opt.checkpoints_dir, opt.name)
     save_path = os.path.join(save_dir, save_filename)

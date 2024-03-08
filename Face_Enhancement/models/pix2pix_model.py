@@ -1,33 +1,40 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
+import os
 
 import torch
-import models.networks as networks
-import util.util as util
+# import .networks.__init__ as networks
+from .networks.__init__ import modify_options as networks_modify_options
+from .networks.__init__ import define_G as networks_define_G , define_D as networks_define_D, define_E as networks_define_E
+# import .models.networks as networks
+# from ..util import util
+# from Global.models.networks import GANLoss, VGGLoss, KLDLoss
 
 
 class Pix2PixModel(torch.nn.Module):
     @staticmethod
-    def modify_commandline_options(parser, is_train):
-        networks.modify_commandline_options(parser, is_train)
-        return parser
+    def modify_options(opt, is_train):
+        networks_modify_options(opt, is_train)
+        return opt
 
     def __init__(self, opt):
         super().__init__()
         self.opt = opt
         self.FloatTensor = torch.cuda.FloatTensor if self.use_gpu() else torch.FloatTensor
         self.ByteTensor = torch.cuda.ByteTensor if self.use_gpu() else torch.ByteTensor
-
+        print('********************************netG:', opt.netG)
+        self.modify_options(opt, is_train=False)
         self.netG, self.netD, self.netE = self.initialize_networks(opt)
 
         # set loss functions
         if opt.isTrain:
-            self.criterionGAN = networks.GANLoss(opt.gan_mode, tensor=self.FloatTensor, opt=self.opt)
-            self.criterionFeat = torch.nn.L1Loss()
-            if not opt.no_vgg_loss:
-                self.criterionVGG = networks.VGGLoss(self.opt.gpu_ids)
-            if opt.use_vae:
-                self.KLDLoss = networks.KLDLoss()
+            print('It shouldn\'t be True')
+            # self.criterionGAN = GANLoss(opt.gan_mode, tensor=self.FloatTensor, opt=self.opt)
+            # self.criterionFeat = torch.nn.L1Loss()
+            # if not opt.no_vgg_loss:
+            #     self.criterionVGG = VGGLoss(self.opt.gpu_ids)
+            # if opt.use_vae:
+            #     self.KLDLoss = KLDLoss()
 
     # Entry point for all calls involving forward pass
     # of deep networks. We used this approach since DataParallel module
@@ -35,7 +42,7 @@ class Pix2PixModel(torch.nn.Module):
     # routines based on |mode|.
     def forward(self, data, mode):
         input_semantics, real_image, degraded_image = self.preprocess_input(data)
-
+        print('in forward', input_semantics.shape, real_image.shape, degraded_image.shape)
         if mode == "generator":
             g_loss, generated = self.compute_generator_loss(input_semantics, degraded_image, real_image)
             return g_loss, generated
@@ -53,6 +60,7 @@ class Pix2PixModel(torch.nn.Module):
             raise ValueError("|mode| is invalid")
 
     def create_optimizers(self, opt):
+        print('in create_optimizers')
         G_params = list(self.netG.parameters())
         if opt.use_vae:
             G_params += list(self.netE.parameters())
@@ -71,26 +79,27 @@ class Pix2PixModel(torch.nn.Module):
         return optimizer_G, optimizer_D
 
     def save(self, epoch):
-        util.save_network(self.netG, "G", epoch, self.opt)
-        util.save_network(self.netD, "D", epoch, self.opt)
+        print('in save')
+        save_network(self.netG, "G", epoch, self.opt)
+        save_network(self.netD, "D", epoch, self.opt)
         if self.opt.use_vae:
-            util.save_network(self.netE, "E", epoch, self.opt)
+            save_network(self.netE, "E", epoch, self.opt)
 
     ############################################################################
     # Private helper methods
     ############################################################################
 
     def initialize_networks(self, opt):
-        netG = networks.define_G(opt)
-        netD = networks.define_D(opt) if opt.isTrain else None
-        netE = networks.define_E(opt) if opt.use_vae else None
-
+        netG = networks_define_G(opt)
+        netD = networks_define_D(opt) if opt.isTrain else None
+        netE = networks_define_E(opt) if opt.use_vae else None
+        print('initialized networks')
         if not opt.isTrain or opt.continue_train:
-            netG = util.load_network(netG, "G", opt.which_epoch, opt)
+            netG = load_network(netG, "G", opt.which_epoch, opt)
             if opt.isTrain:
-                netD = util.load_network(netD, "D", opt.which_epoch, opt)
+                netD = load_network(netD, "D", opt.which_epoch, opt)
             if opt.use_vae:
-                netE = util.load_network(netE, "E", opt.which_epoch, opt)
+                netE = load_network(netE, "E", opt.which_epoch, opt)
 
         return netG, netD, netE
 
@@ -101,7 +110,7 @@ class Pix2PixModel(torch.nn.Module):
     def preprocess_input(self, data):
         # move to GPU and change data types
         # data['label'] = data['label'].long()
-
+        print('in preprocess_input', data['label'].shape, data['image'].shape)
         if not self.opt.isTrain:
             if self.use_gpu():
                 data["label"] = data["label"].cuda()
@@ -109,6 +118,7 @@ class Pix2PixModel(torch.nn.Module):
             return data["label"], data["image"], data["image"]
 
         ## While testing, the input image is the degraded face
+        print('degraded_image', data['degraded_image'].shape)
         if self.use_gpu():
             data["label"] = data["label"].cuda()
             data["degraded_image"] = data["degraded_image"].cuda()
@@ -125,6 +135,7 @@ class Pix2PixModel(torch.nn.Module):
         return data["label"], data["image"], data["degraded_image"]
 
     def compute_generator_loss(self, input_semantics, degraded_image, real_image):
+        print('in compute_generator_loss')
         G_losses = {}
 
         fake_image, KLD_loss = self.generate_fake(
@@ -155,6 +166,7 @@ class Pix2PixModel(torch.nn.Module):
         return G_losses, fake_image
 
     def compute_discriminator_loss(self, input_semantics, degraded_image, real_image):
+        print('in compute_discriminator_loss')
         D_losses = {}
         with torch.no_grad():
             fake_image, _ = self.generate_fake(input_semantics, degraded_image, real_image)
@@ -174,6 +186,7 @@ class Pix2PixModel(torch.nn.Module):
         return z, mu, logvar
 
     def generate_fake(self, input_semantics, degraded_image, real_image, compute_kld_loss=False):
+        print('in generate_fake')
         z = None
         KLD_loss = None
         if self.opt.use_vae:
@@ -193,7 +206,7 @@ class Pix2PixModel(torch.nn.Module):
     # for each fake and real image.
 
     def discriminate(self, input_semantics, fake_image, real_image):
-
+        print('in discriminate')
         if self.opt.no_parsing_map:
             fake_concat = fake_image
             real_concat = real_image
@@ -215,6 +228,7 @@ class Pix2PixModel(torch.nn.Module):
 
     # Take the prediction of fake and real images from the combined batch
     def divide_pred(self, pred):
+        print('in divide_pred')
         # the prediction contains the intermediate outputs of multiscale GAN,
         # so it's usually a list
         if type(pred) == list:
@@ -230,6 +244,7 @@ class Pix2PixModel(torch.nn.Module):
         return fake, real
 
     def get_edges(self, t):
+        print('in get_edges')
         edge = self.ByteTensor(t.size()).zero_()
         edge[:, :, :, 1:] = edge[:, :, :, 1:] | (t[:, :, :, 1:] != t[:, :, :, :-1])
         edge[:, :, :, :-1] = edge[:, :, :, :-1] | (t[:, :, :, 1:] != t[:, :, :, :-1])
@@ -243,4 +258,22 @@ class Pix2PixModel(torch.nn.Module):
         return eps.mul(std) + mu
 
     def use_gpu(self):
-        return len(self.opt.gpu_ids) > 0
+        return self.opt.gpu_ids
+
+def save_network(net, label, epoch, opt):
+    save_filename = "%s_net_%s.pth" % (epoch, label)
+    save_path = os.path.join(opt.checkpoints_dir, opt.name, save_filename)
+    torch.save(net.cpu().state_dict(), save_path)
+    if len(opt.gpu_ids) and torch.cuda.is_available():
+        net.cuda()
+
+
+def load_network(net, label, epoch, opt):
+    print("loading the model from %s" % opt.checkpoints_dir, epoch, label)
+    save_filename = "%s_net_%s.pth" % (epoch, label)
+    save_dir = os.path.join(opt.checkpoints_dir, opt.name)
+    save_path = os.path.join(save_dir, save_filename)
+    if os.path.exists(save_path):
+        weights = torch.load(save_path)
+        net.load_state_dict(weights)
+    return net

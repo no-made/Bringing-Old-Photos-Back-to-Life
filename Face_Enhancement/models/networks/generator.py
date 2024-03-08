@@ -4,26 +4,21 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from models.networks.base_network import BaseNetwork
-from models.networks.normalization import get_nonspade_norm_layer
-from models.networks.architecture import ResnetBlock as ResnetBlock
-from models.networks.architecture import SPADEResnetBlock as SPADEResnetBlock
-from models.networks.architecture import SPADEResnetBlock_non_spade as SPADEResnetBlock_non_spade
+from .base_network import BaseNetwork
+from .normalization import get_nonspade_norm_layer
+from .architecture import ResnetBlock as ResnetBlock
+from .architecture import SPADEResnetBlock as SPADEResnetBlock
+from .architecture import SPADEResnetBlock_non_spade as SPADEResnetBlock_non_spade
 
 
 class SPADEGenerator(BaseNetwork):
     @staticmethod
-    def modify_commandline_options(parser, is_train):
-        parser.set_defaults(norm_G="spectralspadesyncbatch3x3")
-        parser.add_argument(
-            "--num_upsampling_layers",
-            choices=("normal", "more", "most"),
-            default="normal",
-            help="If 'more', adds upsampling layer between the two middle resnet blocks. If 'most', also add one more upsampling + resnet layer at the end of the generator",
-        )
-
-        return parser
-
+    def modify_options(opt, is_train):
+        print("xxxxx")
+        opt.norm_G = "spectralspadesyncbatch3x3"
+        opt.num_upsampling_layers = "normal"  # or "normal" or "most" or "more"
+        opt.injection_layer = "all"  # or specify a layer. "all" injects noise in all layers
+        return opt
     def __init__(self, opt):
         super().__init__()
         self.opt = opt
@@ -43,7 +38,7 @@ class SPADEGenerator(BaseNetwork):
                 self.fc = nn.Conv2d(3, 16 * nf, 3, padding=1)
             else:
                 self.fc = nn.Conv2d(self.opt.semantic_nc, 16 * nf, 3, padding=1)
-
+        print(opt)
         if self.opt.injection_layer == "all" or self.opt.injection_layer == "1":
             self.head_0 = SPADEResnetBlock(16 * nf, 16 * nf, opt)
         else:
@@ -150,24 +145,11 @@ class SPADEGenerator(BaseNetwork):
 
 class Pix2PixHDGenerator(BaseNetwork):
     @staticmethod
-    def modify_commandline_options(parser, is_train):
-        parser.add_argument(
-            "--resnet_n_downsample", type=int, default=4, help="number of downsampling layers in netG"
-        )
-        parser.add_argument(
-            "--resnet_n_blocks",
-            type=int,
-            default=9,
-            help="number of residual blocks in the global generator network",
-        )
-        parser.add_argument(
-            "--resnet_kernel_size", type=int, default=3, help="kernel size of the resnet block"
-        )
-        parser.add_argument(
-            "--resnet_initial_kernel_size", type=int, default=7, help="kernel size of the first convolution"
-        )
-        # parser.set_defaults(norm_G='instance')
-        return parser
+    def modify_options(opt, is_train):
+        opt.resnet_n_downsample = 4
+        opt.resnet_n_blocks = 9
+        opt.resnet_kernel_size = 3
+        opt.resnet_initial_kernel_size = 7
 
     def __init__(self, opt):
         super().__init__()

@@ -8,7 +8,7 @@ import torch.nn.functional as F
 import os
 import functools
 from torch.autograd import Variable
-from util.image_pool import ImagePool
+from ..util.image_pool import ImagePool
 from .base_model import BaseModel
 from . import networks
 import math
@@ -62,12 +62,11 @@ class Mapping_Model_with_mask(nn.Module):
             oc = min(64 * (2 ** (3 - i)), mc)
             model += [nn.Conv2d(ic, oc, 3, 1, 1), norm_layer(oc), activation]
         model += [nn.Conv2d(tmp_nc * 2, tmp_nc, 3, 1, 1)]
-        if opt.feat_dim > 0 and opt.feat_dim < 64:
+        if 0 < opt.feat_dim < 64:
             model += [norm_layer(tmp_nc), activation, nn.Conv2d(tmp_nc, opt.feat_dim, 1, 1)]
         # model += [nn.Conv2d(64, 1, 1, 1, 0)]
         self.after_NL = nn.Sequential(*model)
-        
-    
+
     def forward(self, input, mask):
         x1 = self.before_NL(input)
         del input
@@ -77,6 +76,7 @@ class Mapping_Model_with_mask(nn.Module):
         del x2
 
         return x3
+
 
 class Mapping_Model_with_mask_2(nn.Module): ## Multi-Scale Patch Attention
     def __init__(self, nc, mc=64, n_blocks=3, norm="instance", padding_type="reflect", opt=None):

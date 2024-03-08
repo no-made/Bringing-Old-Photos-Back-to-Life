@@ -1,38 +1,17 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-from data.base_dataset import BaseDataset, get_params, get_transform
+from .base_dataset import BaseDataset, get_params, get_transform
 from PIL import Image
-import util.util as util
+# import util.util as util
 import os
 import torch
 
 
 class FaceTestDataset(BaseDataset):
-    @staticmethod
-    def modify_commandline_options(parser, is_train):
-        parser.add_argument(
-            "--no_pairing_check",
-            action="store_true",
-            help="If specified, skip sanity check of correct label-image file pairing",
-        )
-        #    parser.set_defaults(contain_dontcare_label=False)
-        #    parser.set_defaults(no_instance=True)
-        return parser
-
-    def initialize(self, opt):
+    def __init__(self, opt):
+        super(FaceTestDataset, self).__init__()
         self.opt = opt
-
-        image_path = os.path.join(opt.dataroot, opt.old_face_folder)
-        label_path = os.path.join(opt.dataroot, opt.old_face_label_folder)
-
-        image_list = os.listdir(image_path)
-        image_list = sorted(image_list)
-        # image_list=image_list[:opt.max_dataset_size]
-
-        self.label_paths = label_path  ## Just the root dir
-        self.image_paths = image_list  ## All the image name
-
         self.parts = [
             "skin",
             "hair",
@@ -53,14 +32,34 @@ class FaceTestDataset(BaseDataset):
             "cloth",
             "hat",
         ]
+        self.label_paths = []
+        self.image_paths = []
+        self.dataset_size = 0
 
-        size = len(self.image_paths)
-        self.dataset_size = size
+    @staticmethod
+    def modify_options(opt, is_train):
+        opt.no_pairing_check = True
+        opt.contain_dontcare_label = False
+        opt.no_instance = True
+        return opt
+
+    def initialize(self, opt):
+        print('///////////////////////initialize///////////////////////')
+        image_path = os.path.join(opt.dataroot, opt.old_face_folder)
+        label_path = os.path.join(opt.dataroot, opt.old_face_label_folder)
+
+        image_list = os.listdir(image_path)
+        image_list = sorted(image_list)
+        print(image_list)
+        self.label_paths = label_path
+        self.image_paths = image_list
+        self.dataset_size = len(self.image_paths)
 
     def __getitem__(self, index):
 
         params = get_params(self.opt, (-1, -1))
         image_name = self.image_paths[index]
+        print(self.opt.dataroot, self.opt.old_face_folder, image_name)
         image_path = os.path.join(self.opt.dataroot, self.opt.old_face_folder, image_name)
         image = Image.open(image_path)
         image = image.convert("RGB")

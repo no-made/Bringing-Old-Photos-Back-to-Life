@@ -3,13 +3,15 @@
 
 import importlib
 import torch.utils.data
-from data.base_dataset import BaseDataset
-from data.face_dataset import FaceTestDataset
+# from data.base_dataset import BaseDataset
+# from data.face_dataset import FaceTestDataset
+from .face_dataset import FaceTestDataset
+# from base_dataset import BaseDataset
 
 
 def create_dataloader(opt):
 
-    instance = FaceTestDataset()
+    instance = FaceTestDataset(opt)
     instance.initialize(opt)
     print("dataset [%s] of size %d was created" % (type(instance).__name__, len(instance)))
     dataloader = torch.utils.data.DataLoader(

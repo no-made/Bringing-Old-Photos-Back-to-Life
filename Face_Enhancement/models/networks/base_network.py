@@ -10,8 +10,8 @@ class BaseNetwork(nn.Module):
         super(BaseNetwork, self).__init__()
 
     @staticmethod
-    def modify_commandline_options(parser, is_train):
-        return parser
+    def modify_options(opt, is_train):
+        return opt
 
     def print_network(self):
         if isinstance(self, list):

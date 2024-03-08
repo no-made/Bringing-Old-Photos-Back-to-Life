@@ -5,7 +5,7 @@ This web app is part of the ReInHerit Toolkit.
 **Based on Bringing Old Photos Back to Life, CVPR2020 (Oral)**
 
 
-<img src='imgs/HR_result.png'>
+<img src='static/assets/images/HR_result.png'>
 
 ## How to run the app
 You can choose to test the app in two ways:
@@ -30,23 +30,8 @@ Depending on which method you have chosen to test the app you must:
 
 ## Clone this repository and install models and checkpoints
 ### 1. Clone this repository on your PC. 
-### 2. Clone the Synchronized-BatchNorm-PyTorch repository 
-In a terminal go to the project folder and run the following code:
-```
-cd Face_Enhancement/models/networks/
-git clone https://github.com/vacancy/Synchronized-BatchNorm-PyTorch
-cp -rf Synchronized-BatchNorm-PyTorch/sync_batchnorm .
-cd ../../../
-```
 
-```
-cd Global/detection_models
-git clone https://github.com/vacancy/Synchronized-BatchNorm-PyTorch
-cp -rf Synchronized-BatchNorm-PyTorch/sync_batchnorm .
-cd ../../
-```
-
-### 3. Download the landmark detection pretrained model
+### 2. Download the landmark detection pretrained model
 In a terminal go to the project folder and run the following code:
 ```
 cd Face_Detection/
@@ -55,7 +40,7 @@ bzip2 -d shape_predictor_68_face_landmarks.dat.bz2
 cd ../
 ```
 
-### 4. Download the pretrained model
+### 3. Download the pretrained model
 Put the file _**Face_Enhancement/checkpoints.zip**_ under **_./Face_Enhancement,_** and put the file **_Global/checkpoints.zip_** under **_./Global_**. Then unzip them respectively.
 Use this code:
 ```
@@ -68,7 +53,7 @@ wget https://github.com/microsoft/Bringing-Old-Photos-Back-to-Life/releases/down
 unzip global_checkpoints.zip
 cd ../
 ```
-### 5. Manage secret keys
+### 4. Manage secret keys
 A **Django secret key** is required, **Google Analytics** is optional. \
 Edit the .env_template file with your own settings and rename it to .env. 
 #### ___Django secret key___: 
@@ -143,7 +128,7 @@ docker build -t oldphoto .
 1. In a terminal goto the root of the repository
 2. Run 
 ```
-docker run --env-file=.env -e HOST=localhost -v media-volume:/app/media:rw -p 8000:8000 -p 5000:5000 oldphoto
+docker run -it --gpus=all --env-file=.env -e HOST=localhost -e PORT=8000 -v media-volume:/app/media:rw -p 8000:8000 oldphoto
 ```
 3. Wait till the container is running
 4. Open a browser and go to 

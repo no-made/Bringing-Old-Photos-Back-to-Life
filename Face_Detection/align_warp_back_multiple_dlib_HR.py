@@ -17,7 +17,7 @@ import torchvision.utils as vutils
 import time
 import cv2
 import os
-from skimage import img_as_ubyte
+from skimage.util.dtype import img_as_ubyte
 import json
 import argparse
 import dlib
@@ -215,7 +215,7 @@ def blur_blending(im1, im2, mask):
 
 
 def blur_blending_cv2(im1, im2, mask):
-
+    mask = mask.astype(float)
     mask *= 255.0
 
     kernel = np.ones((9, 9), np.uint8)
@@ -424,7 +424,7 @@ if __name__ == "__main__":
                 order=0,
                 preserve_range=True,
             )  ## Nearest neighbour
-
+            print(forward_mask.dtype, backward_mask.dtype, warped_back.dtype, blended.dtype, cur_face.dtype)
             blended = blur_blending_cv2(warped_back, blended, backward_mask)
             blended *= 255.0
 

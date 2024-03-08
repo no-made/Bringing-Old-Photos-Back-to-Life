@@ -1,21 +1,23 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-from data.base_dataset import BaseDataset, get_params, get_transform
+from .base_dataset import BaseDataset, get_params, get_transform
 from PIL import Image
-import util.util as util
+# import .util.util as util
+from Face_Enhancement.util import util
 import os
 
 
 class Pix2pixDataset(BaseDataset):
     @staticmethod
-    def modify_commandline_options(parser, is_train):
-        parser.add_argument(
-            "--no_pairing_check",
-            action="store_true",
-            help="If specified, skip sanity check of correct label-image file pairing",
-        )
-        return parser
+    def modify_options(opt, is_train):
+        opt.no_pairing_check = True
+        # parser.add_argument(
+        #     "--no_pairing_check",
+        #     action="store_true",
+        #     help="If specified, skip sanity check of correct label-image file pairing",
+        # )
+        return opt
 
     def initialize(self, opt):
         self.opt = opt

@@ -43,12 +43,11 @@ def print_network(net):
     num_params = 0
     for param in net.parameters():
         num_params += param.numel()
-    print(net)
     print("Total number of parameters: %d" % num_params)
 
 
 def define_G(input_nc, output_nc, ngf, netG, k_size=3, n_downsample_global=3, n_blocks_global=9, n_local_enhancers=1,
-             n_blocks_local=3, norm='instance', gpu_ids=[], opt=None):
+             n_blocks_local=3, norm='instance', gpu_ids=-1, opt=None):
     
     norm_layer = get_norm_layer(norm_type=norm)
     if netG == 'global':
@@ -59,21 +58,19 @@ def define_G(input_nc, output_nc, ngf, netG, k_size=3, n_downsample_global=3, n_
             netG = GlobalGenerator_v2(input_nc, output_nc, ngf, k_size, n_downsample_global, n_blocks_global, norm_layer, opt=opt)
     else:
         raise('generator not implemented!')
-    print(netG)
-    if len(gpu_ids) > 0:
+    if gpu_ids >= 0:
         assert(torch.cuda.is_available())
-        netG.cuda(gpu_ids[0])
+        netG.cuda(gpu_ids)
     netG.apply(weights_init)
     return netG
 
 
-def define_D(input_nc, ndf, n_layers_D, opt, norm='instance', use_sigmoid=False, num_D=1, getIntermFeat=False, gpu_ids=[]):
+def define_D(input_nc, ndf, n_layers_D, opt, norm='instance', use_sigmoid=False, num_D=1, getIntermFeat=False, gpu_ids=-1):
     norm_layer = get_norm_layer(norm_type=norm)
     netD = MultiscaleDiscriminator(input_nc, opt, ndf, n_layers_D, norm_layer, use_sigmoid, num_D, getIntermFeat)
-    print(netD)
-    if len(gpu_ids) > 0:
+    if gpu_ids >= 0:
         assert(torch.cuda.is_available())
-        netD.cuda(gpu_ids[0])
+        netD.cuda(gpu_ids)
     netD.apply(weights_init)
     return netD
 
@@ -499,9 +496,6 @@ class NonLocalBlock2D_with_mask_Res(nn.Module):
         if self.use_self:
             mask_expand[:, range(x.size(2) * x.size(3)), range(x.size(2) * x.size(3))] = 1.0
 
-        #    print(mask_expand.shape)
-        #    print(f_div_C.shape)
-
         f_div_C = mask_expand * f_div_C
         if self.renorm:
             f_div_C = F.normalize(f_div_C, p=1, dim=2)
@@ -704,8 +698,6 @@ class Patch_Attention_4(nn.Module):  ## While combine the feature map, use conv 
         correlation_matrix=torch.bmm(y_unfold_normalized,x_unfold_normalized)
         correlation_matrix=correlation_matrix.masked_fill(non_mask_region==1.,-1e9)
         correlation_matrix=F.softmax(correlation_matrix,dim=2)
-
-        # print(correlation_matrix)
 
         R, max_arg=torch.max(correlation_matrix,dim=2)
 

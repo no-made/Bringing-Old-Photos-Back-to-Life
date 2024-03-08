@@ -8,7 +8,7 @@ import torch.nn.functional as F
 import os
 import functools
 from torch.autograd import Variable
-from util.image_pool import ImagePool
+from ..util.image_pool import ImagePool
 from .base_model import BaseModel
 from . import networks
 import math
@@ -48,7 +48,7 @@ class Mapping_Model(nn.Module):
             oc = min(64 * (2 ** (3 - i)), mc)
             model += [nn.Conv2d(ic, oc, 3, 1, 1), norm_layer(oc), activation]
         model += [nn.Conv2d(tmp_nc * 2, tmp_nc, 3, 1, 1)]
-        if opt.feat_dim > 0 and opt.feat_dim < 64:
+        if 0 < opt.feat_dim < 64:
             model += [norm_layer(tmp_nc), activation, nn.Conv2d(tmp_nc, opt.feat_dim, 1, 1)]
         # model += [nn.Conv2d(64, 1, 1, 1, 0)]
         self.model = nn.Sequential(*model)
@@ -105,7 +105,7 @@ class Pix2PixHDModel_Mapping(BaseModel):
         )
 
         if opt.non_local == "Setting_42" or opt.NL_use_mask:
-            if opt.mapping_exp==1:
+            if opt.mapping_exp == 1:
                 self.mapping_net = Mapping_Model_with_mask_2(
                     min(opt.ngf * 2 ** opt.n_downsample_global, opt.mc),
                     opt.map_mc,
@@ -143,10 +143,10 @@ class Pix2PixHDModel_Mapping(BaseModel):
             self.netG_A.eval()
             self.netG_B.eval()
 
-        if opt.gpu_ids:
-            self.netG_A.cuda(opt.gpu_ids[0])
-            self.netG_B.cuda(opt.gpu_ids[0])
-            self.mapping_net.cuda(opt.gpu_ids[0])
+        if opt.gpu_ids >= 0:
+            self.netG_A.cuda(opt.gpu_ids)
+            self.netG_B.cuda(opt.gpu_ids)
+            self.mapping_net.cuda(opt.gpu_ids)
         
         if not self.isTrain:
             self.load_network(self.mapping_net, "mapping_net", opt.which_epoch)
@@ -162,55 +162,55 @@ class Pix2PixHDModel_Mapping(BaseModel):
                                               opt.num_D, not opt.no_ganFeat_loss, gpu_ids=self.gpu_ids)
 
         # set loss functions and optimizers
-        if self.isTrain:
-            if opt.pool_size > 0 and (len(self.gpu_ids)) > 1:
-                raise NotImplementedError("Fake Pool Not Implemented for MultiGPU")
-            self.fake_pool = ImagePool(opt.pool_size)
-            self.old_lr = opt.lr
-
-            # define loss functions
-            self.loss_filter = self.init_loss_filter(not opt.no_ganFeat_loss, not opt.no_vgg_loss, opt.Smooth_L1, opt.use_two_stage_mapping)
-
-            self.criterionGAN = networks.GANLoss(use_lsgan=not opt.no_lsgan, tensor=self.Tensor)
-
-
-            self.criterionFeat = torch.nn.L1Loss()
-            self.criterionFeat_feat = torch.nn.L1Loss() if opt.use_l1_feat else torch.nn.MSELoss()
-
-            if self.opt.image_L1:
-                self.criterionImage=torch.nn.L1Loss()
-            else:
-                self.criterionImage = torch.nn.SmoothL1Loss()
-
-
-            print(self.criterionFeat_feat)
-            if not opt.no_vgg_loss:
-                self.criterionVGG = networks.VGGLoss_torch(self.gpu_ids)
-                
-        
-            # Names so we can breakout loss
-            self.loss_names = self.loss_filter('G_Feat_L2', 'G_GAN', 'G_GAN_Feat', 'G_VGG','D_real', 'D_fake', 'Smooth_L1', 'G_Feat_L2_Stage_1')
-
-            # initialize optimizers
-            # optimizer G
-
-            if opt.no_TTUR:
-                beta1,beta2=opt.beta1,0.999
-                G_lr,D_lr=opt.lr,opt.lr
-            else:
-                beta1,beta2=0,0.9
-                G_lr,D_lr=opt.lr/2,opt.lr*2
-
-
-            if not opt.no_load_VAE:
-                params = list(self.mapping_net.parameters())
-                self.optimizer_mapping = torch.optim.Adam(params, lr=G_lr, betas=(beta1, beta2))
-
-            # optimizer D                        
-            params = list(self.netD.parameters())    
-            self.optimizer_D = torch.optim.Adam(params, lr=D_lr, betas=(beta1, beta2))
-
-            print("---------- Optimizers initialized -------------")
+        # if self.isTrain:
+        #     if opt.pool_size > 0 and (len(self.gpu_ids)) > 1:
+        #         raise NotImplementedError("Fake Pool Not Implemented for MultiGPU")
+        #     self.fake_pool = ImagePool(opt.pool_size)
+        #     self.old_lr = opt.lr
+        #
+        #     # define loss functions
+        #     self.loss_filter = self.init_loss_filter(not opt.no_ganFeat_loss, not opt.no_vgg_loss, opt.Smooth_L1, opt.use_two_stage_mapping)
+        #
+        #     self.criterionGAN = networks.GANLoss(use_lsgan=not opt.no_lsgan, tensor=self.Tensor)
+        #
+        #
+        #     self.criterionFeat = torch.nn.L1Loss()
+        #     self.criterionFeat_feat = torch.nn.L1Loss() if opt.use_l1_feat else torch.nn.MSELoss()
+        #
+        #     if self.opt.image_L1:
+        #         self.criterionImage=torch.nn.L1Loss()
+        #     else:
+        #         self.criterionImage = torch.nn.SmoothL1Loss()
+        #
+        #
+        #     print(self.criterionFeat_feat)
+        #     if not opt.no_vgg_loss:
+        #         self.criterionVGG = networks.VGGLoss_torch(self.gpu_ids)
+        #
+        #
+        #     # Names so we can breakout loss
+        #     self.loss_names = self.loss_filter('G_Feat_L2', 'G_GAN', 'G_GAN_Feat', 'G_VGG','D_real', 'D_fake', 'Smooth_L1', 'G_Feat_L2_Stage_1')
+        #
+        #     # initialize optimizers
+        #     # optimizer G
+        #
+        #     if opt.no_TTUR:
+        #         beta1,beta2=opt.beta1,0.999
+        #         G_lr,D_lr=opt.lr,opt.lr
+        #     else:
+        #         beta1,beta2=0,0.9
+        #         G_lr,D_lr=opt.lr/2,opt.lr*2
+        #
+        #
+        #     if not opt.no_load_VAE:
+        #         params = list(self.mapping_net.parameters())
+        #         self.optimizer_mapping = torch.optim.Adam(params, lr=G_lr, betas=(beta1, beta2))
+        #
+        #     # optimizer D
+        #     params = list(self.netD.parameters())
+        #     self.optimizer_D = torch.optim.Adam(params, lr=D_lr, betas=(beta1, beta2))
+        #
+        #     print("---------- Optimizers initialized -------------")
 
     def encode_input(self, label_map, inst_map=None, real_image=None, feat_map=None, infer=False):             
         if self.opt.label_nc == 0:
@@ -253,8 +253,6 @@ class Pix2PixHDModel_Mapping(BaseModel):
         input_concat = input_label
         
         label_feat = self.netG_A.forward(input_concat, flow='enc')
-        # print('label:')
-        # print(label_feat.min(), label_feat.max(), label_feat.mean())
         #label_feat = label_feat / 16.0
 
         if self.opt.NL_use_mask: 
@@ -322,25 +320,25 @@ class Pix2PixHDModel_Mapping(BaseModel):
         return [ self.loss_filter(loss_feat_l2, loss_G_GAN, loss_G_GAN_Feat, loss_G_VGG, loss_D_real, loss_D_fake,smooth_l1_loss,loss_feat_l2_stage_1), None if not infer else fake_image ]
 
     def inference(self, label, inst):
-
-        use_gpu = len(self.opt.gpu_ids) > 0
+        print('1')
+        use_gpu = True
         if use_gpu:
             input_concat = label.data.cuda()
             inst_data = inst.cuda()
         else:
             input_concat = label.data
             inst_data = inst
-
+        print('2')
         label_feat = self.netG_A.forward(input_concat, flow="enc")
-
+        print('3')
         if self.opt.NL_use_mask:
             if self.opt.inference_optimize:
-                label_feat_map=self.mapping_net.inference_forward(label_feat.detach(),inst_data)
+                label_feat_map = self.mapping_net.inference_forward(label_feat.detach(), inst_data)
             else:   
                 label_feat_map = self.mapping_net(label_feat.detach(), inst_data)
         else:
             label_feat_map = self.mapping_net(label_feat.detach())
-
+        print('4')
         fake_image = self.netG_B.forward(label_feat_map, flow="dec")
         return fake_image
 

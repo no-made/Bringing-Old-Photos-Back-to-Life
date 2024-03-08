@@ -13,8 +13,8 @@ class BaseDataset(data.Dataset):
         super(BaseDataset, self).__init__()
 
     @staticmethod
-    def modify_commandline_options(parser, is_train):
-        return parser
+    def modify_options(opt, is_train):
+        return opt
 
     def initialize(self, opt):
         pass

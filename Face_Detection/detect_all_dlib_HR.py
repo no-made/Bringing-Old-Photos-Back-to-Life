@@ -18,7 +18,7 @@ import torchvision.utils as vutils
 import time
 import cv2
 import os
-from skimage import img_as_ubyte
+from skimage.util.dtype import img_as_ubyte
 import json
 import argparse
 import dlib

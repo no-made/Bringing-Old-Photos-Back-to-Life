@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
 import torch.nn.utils.spectral_norm as spectral_norm
-from models.networks.normalization import SPADE
+from .normalization import SPADE
 
 
 # ResNet block that uses SPADE.
@@ -29,7 +29,6 @@ class SPADEResnetBlock(nn.Module):
         self.conv_1 = nn.Conv2d(fmiddle, fout, kernel_size=3, padding=1)
         if self.learned_shortcut:
             self.conv_s = nn.Conv2d(fin, fout, kernel_size=1, bias=False)
-
         # apply spectral norm if specified
         if "spectral" in opt.norm_G:
             self.conv_0 = spectral_norm(self.conv_0)
