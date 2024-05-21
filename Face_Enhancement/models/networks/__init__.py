@@ -58,7 +58,7 @@ def find_class_in_module(target_cls_name, module):
 def create_network(cls, opt):
     net = cls(opt)
     net.print_network()
-    if opt.gpu_ids:
+    if opt.gpu_ids > -1:
         assert torch.cuda.is_available()
         net.cuda()
     net.init_weights(opt.init_type, opt.init_variance)

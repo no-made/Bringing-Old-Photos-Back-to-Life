@@ -14,7 +14,7 @@
     <link href="{{ '/static/assets/images/favicon/apple-touch-icon.png' }}" rel="apple-touch-icon">
     <script type="text/javascript">
         DJANGO_STATIC_URL = '{{ STATIC_URL }}';
-        DJANGO_MEDIA_URL = '{{ MEDIA_URL }}';
+        DJANGO_MEDIA_URL = '{{ STATIC_URL }}media/';
         window.user_id = "{{ user_id }}";
         window.protocol = "{{ protocol }}";
         window.host = "{{ host }}";

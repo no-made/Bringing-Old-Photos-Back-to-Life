@@ -7,6 +7,7 @@ $(document).ready(function () {
     const user_id = window.user_id;
     const port = window.port;
     const host = window.host;
+    const hostAddress = window.location.hostname;
     const protocol = window.protocol;
     console.log('protocol: ', protocol, 'host: ', host, 'port: ', port, 'user_id: ', user_id)
     const landing_section = `
@@ -214,7 +215,7 @@ $(document).ready(function () {
                     loading_text.value = messages[index];
                     index = (index + 1) % messages.length;
                 }, 5000);
-                fetch(`${protocol}://${host}:8000/upload/image/`, {
+                fetch(`${protocol}://${hostAddress}:8000/upload/image/`, {
                     method: 'POST',
                     headers: {
                         'X-User-Id': user_id,
@@ -267,7 +268,7 @@ $(document).ready(function () {
                             input_image.style.height = "100%";
 
                             const textOverlay = document.createElement("div");
-                            textOverlay.innerHTML = "This image is too big, try to upload a smaller version!";
+                            textOverlay.innerHTML = "This server has not GPU with enough memory to process this image.";
                             textOverlay.classList.add("unavailable_text");
                             textOverlay.style.position = "absolute";
                             textOverlay.style.bottom = "0";

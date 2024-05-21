@@ -19,12 +19,12 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from django.views.decorators.csrf import csrf_exempt
 import logging
 import gc
+media_folder = './static/media'
+input_folder = './static/media/input_images'
+input_scratched = './static/media/input_scratched_images'
+input_hd = './static/media/input_hd_images'
 
-input_folder = './media/input_images'
-input_scratched = './media/input_scratched_images'
-input_hd = './media/input_hd_images'
-media_folder = './media'
-output_folder = './media/output_images'
+output_folder = './static/media/output_images'
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:128,garbage_collection_threshold:0.8"
 logger = logging.getLogger(__name__)
 
@@ -50,7 +50,7 @@ def landing(request):
 def delete_temp_folder(request):
     print('The DELETE temp folder has been called.')
     user_id = request.headers.get('X-USER-ID')
-    folder_path = f'./media/{user_id}'
+    folder_path = f'./static/media/{user_id}'
     shutil.rmtree(folder_path, ignore_errors=True)
     print(f'Temp folder for user {user_id} has been deleted.')
     return JsonResponse({'message': f'Temp folder for user {user_id} has been deleted.'})
@@ -62,7 +62,7 @@ def upload_image(request):
     print('The upload image has been called.')
     global input_folder, input_scratched, input_hd, media_folder, output_folder
     user_id = request.headers.get('X-USER-ID')
-    media_folder = './media/' + user_id
+    media_folder = './static/media/' + user_id
     input_folder = media_folder + '/input_images'
     input_scratched = media_folder + '/input_scratched_images'
     input_hd = media_folder + '/input_hd_images'
@@ -103,8 +103,8 @@ def upload_image(request):
 
 
 def modify(image_filename=None, cv2_frame=None, scratched=None):
-    gpu = get_gpu()
-
+    # gpu = get_gpu()
+    gpu = -1
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
     main_environment = os.getcwd()

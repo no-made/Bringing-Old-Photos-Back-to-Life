@@ -1,57 +1,27 @@
-FROM --platform=linux/amd64 nvidia/cuda:12.3.2-devel-ubi8
+#
+#FROM nvidia/cuda:11.6.1-cudnn8-devel-ubuntu20.04 # for GPU acceleration. Works also wothout GPU but the image is much largern than the CPU-only image
+
+# CPU-based image
+FROM --platform=linux/amd64 cnstark/pytorch:1.13.1-py3.9.12-ubuntu20.04
 ENV DEBIAN_FRONTEND=noninteractive
+RUN apt update && DEBIAN_FRONTEND=noninteractive apt install git bzip2 wget unzip python3-pip python3-dev cmake libgl1-mesa-dev python-is-python3 libgtk2.0-dev -yq
 
-# Disable subscription-manager
-# Add workaround to disable subscription-manager plugin
-#RUN echo -e "[main]\nenabled=0" > /etc/dnf/plugins/subscription-manager.conf && \
-#    echo -e "enabled=0" > /etc/yum/pluginconf.d/subscription-manager.conf
-
-
-# Install dependencies
-RUN yum update -y && \
-    yum install -y wget gcc make cmake zlib-devel openssl-devel libXext libXrender libSM libffi-devel  \
-    git bzip2 bzip2-devel readline sqlite-devel ncurses-devel xz xz-devel libGL
-
-# Install pyenv
-RUN git clone https://github.com/pyenv/pyenv.git ~/.pyenv
-ENV PATH="/root/.pyenv/bin:${PATH}"
-RUN echo 'eval "$(pyenv init --path)"' >> ~/.bashrc
-
-# Install Python 3.10.9 with required libraries
-RUN pyenv install 3.10.9
-RUN pyenv global 3.10.9
-
-# Install pip3 and upgrade it
-RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-
-RUN ~/.pyenv/shims/python3 get-pip.py
-RUN rm get-pip.py
-RUN pyenv rehash
-
-# Add pyenv and pip to PATH
-RUN echo 'eval "$(pyenv init --path)"' >> ~/.bashrc
-RUN echo 'eval "$(pyenv init -)"' >> ~/.bashrc
-RUN echo 'export PATH="$HOME/.pyenv/shims:$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc
-
-# Continue with the rest of your Dockerfile
+# Create a working directory
 WORKDIR /app
-COPY requirements.txt /app
+RUN pip3 install --upgrade pip
+# Install Python packages
+COPY requirements.txt requirements.txt
+RUN pip3 install python-dotenv
 
-RUN ~/.pyenv/shims/pip install --upgrade pip setuptools wheel
-RUN ~/.pyenv/shims/pip install numpy==1.24.2
-RUN ~/.pyenv/shims/pip install dlib==19.24.0
-RUN ~/.pyenv/shims/pip install -r requirements.txt
-
-RUN git clone https://github.com/NVlabs/SPADE.git
-
-WORKDIR /app/SPADE
-RUN ~/.pyenv/shims/pip install -r requirements.txt
-
-WORKDIR /app
-ADD . /app
+RUN pip3 install -r requirements.txt
+COPY start.sh .
+COPY . .
 ENV HOST=${HOST:-0.0.0.0}
 ENV PORT=${PORT:-8000}
 EXPOSE ${PORT}
 # to print Python output to console
 ENV PYTHONUNBUFFERED=1
-CMD ["~/.pyenv/shims/python3", "manage.py", "runserver", "0.0.0.0:8000"]
+
+CMD ./start.sh
+
+

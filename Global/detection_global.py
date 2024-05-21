@@ -73,7 +73,8 @@ def main(model, checkpoint_path, config):
 
     if config.gpu >= 0:
         model.to(config.gpu)
-    else: 
+    else:
+        print("Using CPU")
         model.cpu()
     model.eval()
 
