@@ -1,4 +1,4 @@
-FROM nvidia/cuda:12.3.2-devel-ubi8
+FROM --platform=linux/amd64 nvidia/cuda:12.3.2-devel-ubi8
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Disable subscription-manager
