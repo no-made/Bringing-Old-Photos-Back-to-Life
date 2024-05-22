@@ -35,6 +35,7 @@ def index(response):
 
 
 def landing(request):
+    print('The landing page has been called.')
     user_id = str(uuid.uuid4())[:8]  # Generate a unique user ID
     protocol = settings.PROTOCOL
     host = settings.HOST

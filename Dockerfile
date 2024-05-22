@@ -22,6 +22,6 @@ EXPOSE ${PORT}
 # to print Python output to console
 ENV PYTHONUNBUFFERED=1
 
-CMD ./start.sh
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
 
 

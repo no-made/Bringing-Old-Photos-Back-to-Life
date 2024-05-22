@@ -321,7 +321,7 @@ class Pix2PixHDModel_Mapping(BaseModel):
 
     def inference(self, label, inst):
         print('1')
-        use_gpu = True
+        use_gpu = False
         if use_gpu:
             input_concat = label.data.cuda()
             inst_data = inst.cuda()

@@ -376,7 +376,7 @@ def perform(test_input, test_mask, test_mode, outputs_dir, Quality_restore=False
 
         try:
             with torch.no_grad():
-                generated = model.inference(input, mask, gpu)
+                generated = model.inference(input, mask)
         except Exception as ex:
             print("Skip %s due to an error:\n%s" % (input_name, str(ex)))
             continue

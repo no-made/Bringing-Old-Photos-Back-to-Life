@@ -286,10 +286,12 @@ $(document).ready(function () {
                             const output_strips = document.createElement("div");
                             output_strips.classList.add("output_strips");
 
-                            const input_image = createImageElement(`${DJANGO_MEDIA_URL}${user_id}/${fileName.split(".")[0]}_input.png`, 200, null);
-                            const output_image = createImageElement(`${DJANGO_MEDIA_URL}${user_id}/${fileName.split(".")[0]}_output.png`, 200, null);
-                            const paragon_image = createImageElement(`${DJANGO_MEDIA_URL}${user_id}/${fileName.split(".")[0]}_paragon.png`, 200, null);
+                            const fileBaseName = fileName.split(".")[0];
+                            const fileExtension = fileName.split(".")[1];
 
+                            const input_image = createImageElement(`${DJANGO_MEDIA_URL}${user_id}/${fileBaseName}_input.${fileExtension}`, 200, null);
+                            const output_image = createImageElement(`${DJANGO_MEDIA_URL}${user_id}/${fileBaseName}_output.${fileExtension}`, 200, null);
+                            const paragon_image = createImageElement(`${DJANGO_MEDIA_URL}${user_id}/${fileBaseName}_paragon.${fileExtension}`, 200, null);
 
                             output_strips.onclick = function () {
                                 let enlarged = $("#enlarged");

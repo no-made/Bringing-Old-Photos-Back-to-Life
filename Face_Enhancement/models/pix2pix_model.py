@@ -20,6 +20,7 @@ class Pix2PixModel(torch.nn.Module):
     def __init__(self, opt):
         super().__init__()
         self.opt = opt
+        # self.opt.gpu_ids
         self.FloatTensor = torch.cuda.FloatTensor if self.use_gpu() else torch.FloatTensor
         self.ByteTensor = torch.cuda.ByteTensor if self.use_gpu() else torch.ByteTensor
         print('********************************netG:', opt.netG)
@@ -258,7 +259,7 @@ class Pix2PixModel(torch.nn.Module):
         return eps.mul(std) + mu
 
     def use_gpu(self):
-        return self.opt.gpu_ids
+        return False #self.opt.gpu_ids
 
 def save_network(net, label, epoch, opt):
     save_filename = "%s_net_%s.pth" % (epoch, label)
