@@ -1,3 +1,4 @@
+import errno
 
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
@@ -86,12 +87,14 @@ def upload_image(request):
         if image.content_type not in ['image/jpeg', 'image/png']:
             return JsonResponse({'error': 'Invalid image format'})
         img = Image.open(image)
+        print('image', img.size, img.mode,)
         if scratched[i] == 'true' and hd_files[i] == 'true':
             input_filename = os.path.join(input_hd, str(image))
         elif scratched[i] == 'true' and hd_files[i] == 'false':
             input_filename = os.path.join(input_scratched, str(image))
         else:
             input_filename = os.path.join(input_folder, str(image))
+        os.makedirs(os.path.dirname(input_filename), exist_ok=True)
         img.save(input_filename)
 
     modify()
@@ -168,7 +171,7 @@ def create_directory_if_not_exists(directory):
 def stage_1_processing(main_env, gpu):
     # Stage 1: Overall Quality Improve
     # logger.debug('Running Stage 1.')
-    print("Running Stage 1: Overall restoration")
+    print("Running Stage 1: Overall restoration", main_env)
     os.chdir(os.path.join(main_env, "Global"))
     print("current directory: ", os.getcwd())
 
@@ -294,8 +297,16 @@ def process_image(input_dir, output_dir, gpu, is_hd=False):
 
 def delete_and_make_folder(folder):
     if os.path.exists(folder):
-        shutil.rmtree(folder)
-    os.makedirs(folder)
+        try:
+            shutil.rmtree(folder)
+        except OSError as e:
+            if e.errno != errno.ENOENT:  # errno.ENOENT = no such file or directory
+                print(f"Error: {folder} : {e.strerror}")
+    try:
+        os.makedirs(folder)
+    except OSError as e:
+        if e.errno != errno.EEXIST:  # errno.EEXIST = file already exists
+            print(f"Error: {folder} : {e.strerror}")
 
 
 def differences(folder):

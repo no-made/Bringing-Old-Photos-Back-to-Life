@@ -13,7 +13,7 @@ import torch.nn.functional as F
 from PIL import Image, ImageFile
 
 from .detection_models import networks
-from .detection_util.util import *
+from .util.util import mkdir_if_not
 
 warnings.filterwarnings("ignore", category=UserWarning)
 

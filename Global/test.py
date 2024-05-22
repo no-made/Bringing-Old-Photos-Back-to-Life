@@ -14,6 +14,7 @@ import torchvision.utils as vutils
 import torchvision.transforms as transforms
 import numpy as np
 import cv2
+import gc
 
 
 def data_transforms(img, method=Image.BILINEAR, scale=False):
@@ -175,6 +176,7 @@ if __name__ == "__main__":
         try:
             with torch.no_grad():
                 generated = model.inference(input, mask)
+            gc.collect()
         except Exception as ex:
             print("Skip %s due to an error:\n%s" % (input_name, str(ex)))
             continue
@@ -189,6 +191,7 @@ if __name__ == "__main__":
             padding=0,
             normalize=True,
         )
+        gc.collect()
         image_grid = vutils.save_image(
             (generated.data.cpu() + 1.0) / 2.0,
             opt.outputs_dir + "/restored_image/" + input_name,
@@ -196,5 +199,6 @@ if __name__ == "__main__":
             padding=0,
             normalize=True,
         )
+        gc.collect()
 
         origin.save(opt.outputs_dir + "/origin/" + input_name)

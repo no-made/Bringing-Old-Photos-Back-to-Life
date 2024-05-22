@@ -105,8 +105,10 @@ $(document).ready(function () {
         checkbox.innerHTML = `<input type="checkbox" class="checkbox" id="${id}" onchange="${onchange}" name="${id}"><label class="check_label" for="${id}" >${label}</label>`;
         return checkbox;
     }
+
     // ENTERING INPUT SECTION
     startButton.click(function () {
+        startButton.prop('disabled', true);
         replaceContent(input_section);  // replace the landing element with the new input section
         let files = {}
         let fileList = []
@@ -118,7 +120,7 @@ $(document).ready(function () {
             const selected_files = $(this)[0].files;
 
             if (Object.keys(files).length === 0) {
-                files = { ...selected_files };
+                files = {...selected_files};
             } else {
                 for (let i = 0; i < selected_files.length; i++) {
                     if (!Object.values(files).some(e =>
@@ -126,7 +128,7 @@ $(document).ready(function () {
                         e.size === selected_files[i].size &&
                         e.type === selected_files[i].type)) {
                         const new_key = Object.keys(files).length;
-                        files = { ...files, [new_key]: selected_files[i] };
+                        files = {...files, [new_key]: selected_files[i]};
                     }
                 }
             }
@@ -197,7 +199,7 @@ $(document).ready(function () {
 
                     const scratched = scratched_images[i] !== '' ? 'true' : 'false';
                     const hd = hd_images[i] !== '' ? 'true' : 'false';
-                    fileNames.push({'name':fileName, 'scratched':scratched, 'hd':hd});
+                    fileNames.push({'name': fileName, 'scratched': scratched, 'hd': hd});
                     formData.append('base', files[i]);
                     formData.append('scratched', scratched);
                     formData.append('hd', hd);
@@ -233,6 +235,7 @@ $(document).ready(function () {
                 }).then(data => {
                     loading.replaceWith(output_section);
                     const output_images = $("#output-images");
+                    console.log(data)
                     // Create an array to store the file names from data['images']
                     const dataImageNames = data["images"].map(fileName => {
                         const file_name = fileName.split("\\").pop();
@@ -289,9 +292,9 @@ $(document).ready(function () {
                             const fileBaseName = fileName.split(".")[0];
                             const fileExtension = fileName.split(".")[1];
 
-                            const input_image = createImageElement(`${DJANGO_MEDIA_URL}${user_id}/${fileBaseName}_input.${fileExtension}`, 200, null);
-                            const output_image = createImageElement(`${DJANGO_MEDIA_URL}${user_id}/${fileBaseName}_output.${fileExtension}`, 200, null);
-                            const paragon_image = createImageElement(`${DJANGO_MEDIA_URL}${user_id}/${fileBaseName}_paragon.${fileExtension}`, 200, null);
+                            const input_image = createImageElement(`${DJANGO_MEDIA_URL}${user_id}/${fileBaseName}_input.png`, 200, null);
+                            const output_image = createImageElement(`${DJANGO_MEDIA_URL}${user_id}/${fileBaseName}_output.png`, 200, null);
+                            const paragon_image = createImageElement(`${DJANGO_MEDIA_URL}${user_id}/${fileBaseName}_paragon.png`, 200, null);
 
                             output_strips.onclick = function () {
                                 let enlarged = $("#enlarged");
@@ -325,7 +328,11 @@ $(document).ready(function () {
 
                 }).catch(error => {
                     console.error('Error uploading image', error);
+                }).finally(() => {
+                    // Re-enable the start button
+                    startButton.prop('disabled', false);
                 });
+
             });
 
         });
@@ -409,6 +416,7 @@ async function deleteTempFolder(user_id, protocol, host) {
 function reloadPage() {
     location.reload();
 }
+
 function checkboxChanged(file_name, number, which) {
     // Check if 'scratched' checkbox is selected
     const scratchedCheckbox = document.getElementById(`check_${file_name}`);
