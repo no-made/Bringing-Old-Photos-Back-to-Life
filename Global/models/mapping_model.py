@@ -320,7 +320,7 @@ class Pix2PixHDModel_Mapping(BaseModel):
         return [ self.loss_filter(loss_feat_l2, loss_G_GAN, loss_G_GAN_Feat, loss_G_VGG, loss_D_real, loss_D_fake,smooth_l1_loss,loss_feat_l2_stage_1), None if not infer else fake_image ]
 
     def inference(self, label, inst):
-        print('1')
+        print('phase 1')
         use_gpu = False
         if use_gpu:
             input_concat = label.data.cuda()
@@ -328,9 +328,9 @@ class Pix2PixHDModel_Mapping(BaseModel):
         else:
             input_concat = label.data
             inst_data = inst
-        print('2')
+        print('phase 2')
         label_feat = self.netG_A.forward(input_concat, flow="enc")
-        print('3')
+        print('phase 3')
         if self.opt.NL_use_mask:
             if self.opt.inference_optimize:
                 label_feat_map = self.mapping_net.inference_forward(label_feat.detach(), inst_data)
@@ -338,7 +338,7 @@ class Pix2PixHDModel_Mapping(BaseModel):
                 label_feat_map = self.mapping_net(label_feat.detach(), inst_data)
         else:
             label_feat_map = self.mapping_net(label_feat.detach())
-        print('4')
+        print('phase 4')
         fake_image = self.netG_B.forward(label_feat_map, flow="dec")
         return fake_image
 
