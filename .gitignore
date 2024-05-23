@@ -2,14 +2,18 @@ __pycache__/
 *.pyc
 *~
 
-/Face_Enhancement/checkpoints/
+# other repos cloned with download-weights script
 /Global/detection_models/sync_batchnorm/
 /Global/detection_models/Synchronized-BatchNorm-PyTorch/
+
 /Global/detection_models/tests/
 /Global/detection_models/.gitignore
 /Global/detection_models/LICENSE
 /Global/detection_models/README.md
 
+# models downloaded with download-weights script
 /Face_Detection/shape_predictor_68_face_landmarks.dat
+/Face_Enhancement/checkpoints/
 /Global/checkpoints/
+
 /.env

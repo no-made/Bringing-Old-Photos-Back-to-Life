@@ -1,5 +1,5 @@
 #
-#FROM nvidia/cuda:11.6.1-cudnn8-devel-ubuntu20.04 # for GPU acceleration. Works also wothout GPU but the image is much largern than the CPU-only image
+#FROM nvidia/cuda:11.6.1-cudnn8-devel-ubuntu20.04 # for GPU acceleration. Works also without GPU but the image is much larger than the CPU-only image
 
 # CPU-based image
 FROM --platform=linux/amd64 cnstark/pytorch:1.13.1-py3.9.12-ubuntu20.04
