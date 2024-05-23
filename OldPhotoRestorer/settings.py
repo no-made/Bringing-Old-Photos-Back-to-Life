@@ -62,7 +62,8 @@ CORS_ALLOWED_HEADERS = ["accept",
                         "user-agent",
                         "x-csrftoken",
                         "x-requested-with",
-                        'X-User-Id']
+                        'X-User-Id',
+                        'Access-Control-Allow-Origin']
 
 CORS_ALLOWED_METHODS = [
     "GET",

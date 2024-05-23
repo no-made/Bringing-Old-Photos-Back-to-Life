@@ -1,4 +1,5 @@
 import errno
+import json
 
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
@@ -55,7 +56,8 @@ def landing(request):
 @permission_classes([])
 def delete_temp_folder(request):
     print('The DELETE temp folder has been called.')
-    user_id = request.headers.get('X-USER-ID')
+    data = json.loads(request.body)
+    user_id = data.get('X-User-Id')
     folder_path = f'./static/media/{user_id}'
     shutil.rmtree(folder_path, ignore_errors=True)
     print(f'Temp folder for user {user_id} has been deleted.')
@@ -187,16 +189,16 @@ def stage_1_processing(main_env, gpu):
 
     create_directory_if_not_exists(stage_1_output_dir)
     # Process scratched images
-    if not len(stage_1_scratched_dir)==0:
+    if len(os.listdir(stage_1_scratched_dir)) != 0:
         print('precessing scratches')
         process_image(stage_1_scratched_dir, stage_1_output_dir, gpu, False)
 
     # Process HD images
-    if not len(stage_1_hd_dir) == 0:
+    if len(os.listdir(stage_1_hd_dir)) != 0:
         process_image(stage_1_hd_dir, stage_1_output_dir, gpu, True)
 
     # Process regular input images
-    if not len(stage_1_input_dir) == 0:
+    if len(os.listdir(stage_1_input_dir)) != 0:
         process_image(stage_1_input_dir, stage_1_output_dir, gpu, False)
 
     stage_1_results = os.path.join(stage_1_output_dir, "restored_image")

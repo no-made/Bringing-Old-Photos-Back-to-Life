@@ -1,7 +1,7 @@
 let selected_images = [];
 let scratched_images = [];
 let hd_images = [];
-
+let fileNames = [];
 
 $(document).ready(function () {
     const user_id = window.user_id;
@@ -186,160 +186,172 @@ $(document).ready(function () {
                     reader.readAsDataURL(files[i]);
                 }
             }
+        })
+        /* UPLOAD FILES */
+        document.getElementById('image-form').addEventListener('submit', (event) => {
+            event.preventDefault();  // prevent the default form submission
+            fileNames = [];
+            const files = fileList;
 
-            /* UPLOAD FILES AND START TO PROCESS THEM */
-            document.getElementById('image-form').addEventListener('submit', (event) => {
-                event.preventDefault();
-                const fileNames = [];
-                const formData = new FormData();
-                const files = fileList;
+            for (let i = 0; i < files.length; i++) {
+                const fileName = files[i].name;
 
-                for (let i = 0; i < files.length; i++) {
-                    const fileName = files[i].name;
+                const scratched = scratched_images[i] !== '' ? 'true' : 'false';
+                const hd = hd_images[i] !== '' ? 'true' : 'false';
+                fileNames.push({'name': fileName, 'scratched': scratched, 'hd': hd});
+            }
+            console.log(fileNames)
+        });
 
-                    const scratched = scratched_images[i] !== '' ? 'true' : 'false';
-                    const hd = hd_images[i] !== '' ? 'true' : 'false';
-                    fileNames.push({'name': fileName, 'scratched': scratched, 'hd': hd});
-                    formData.append('base', files[i]);
-                    formData.append('scratched', scratched);
-                    formData.append('hd', hd);
+        // START TO PROCESS THEM ON THE SERVER
+        document.getElementById('submit_label').addEventListener('click', (event) => {
+            const formData = new FormData();
+            const files = fileList;
+
+            for (let i = 0; i < files.length; i++) {
+                const fileName = files[i].name;
+
+                const scratched = scratched_images[i] !== '' ? 'true' : 'false';
+                const hd = hd_images[i] !== '' ? 'true' : 'false';
+                formData.append('base', files[i]);
+                formData.append('scratched', scratched);
+                formData.append('hd', hd);
+            }
+
+            const input_section = $("#input-section");
+            input_section.replaceWith(loading_div);
+
+            const loading_text = document.getElementById('loading-text');
+            const loading = $("#loader");
+            const messages = ['Loading...', 'Please wait...', 'Almost done...', 'Hang tight...', 'Wow, it is quite large!', 'Oh my goodness!', 'What a tremendous size it is!'];
+            // Get a reference to the loading text field
+            let index = 0;
+            setInterval(() => {
+                loading_text.value = messages[index];
+                index = (index + 1) % messages.length;
+            }, 5000);
+            fetch(`${protocol}://${hostAddress}:8000/upload/image/`, {
+                method: 'POST',
+                headers: {
+                    'X-User-Id': user_id,
+                    'Access-Control-Allow-Origin': '*'
+                },
+                body: formData,
+                timeout: 65000 // timeout in milliseconds
+            }).then(response => {
+                if (response.ok) {
+                    console.log('Image uploaded successfully');
+                    return response.json()
+                } else {
+                    console.error('Error uploading image');
                 }
+            }).then(data => {
+                loading.replaceWith(output_section);
+                const output_images = $("#output-images");
+                console.log(data)
+                // Create an array to store the file names from data['images']
+                const dataImageNames = data["images"].map(fileName => {
+                    const file_name = fileName.split("\\").pop();
+                    const name = file_name.split(".")[0];
+                    return name;
+                });
+                console.log(dataImageNames)
+                console.log(fileNames)
+                // Loop through fileNames and check if each file is present in dataImageNames
+                for (let i = 0; i < fileNames.length; i++) {
+                    const fileName = fileNames[i].name;
+                    const is_scratch = fileNames[i].scratched;
+                    const is_hd = fileNames[i].hd;
+                    const type = is_hd === 'true' ? '_hd_' : is_scratch === 'true' ? '_scratched_' : '_';
+                    console.log('fileName: ', fileName, 'is_scratch: ', is_scratch, 'is_hd: ', is_hd)
+                    const input_extension = fileName.split(".")[1];
+                    console.log('input_extension: ', input_extension)
+                    const ext = 'png';
+                    const name = fileName.split(".")[0];
+                    if (!dataImageNames.includes(name)) {
+                        const folder_name = 'input' + type + 'images/';
 
-                const input_section = $("#input-section");
-                input_section.replaceWith(loading_div);
 
-                const loading_text = document.getElementById('loading-text');
-                const loading = $("#loader");
-                const messages = ['Loading...', 'Please wait...', 'Almost done...', 'Hang tight...', 'Wow, it is quite large!', 'Oh my goodness!', 'What a tremendous size it is!'];
-                // Get a reference to the loading text field
-                let index = 0;
-                setInterval(() => {
-                    loading_text.value = messages[index];
-                    index = (index + 1) % messages.length;
-                }, 5000);
-                fetch(`${protocol}://${hostAddress}:8000/upload/image/`, {
-                    method: 'POST',
-                    headers: {
-                        'X-User-Id': user_id,
-                        'Access-Control-Allow-Origin': '*'
-                    },
-                    body: formData,
-                    timeout: 65000 // timeout in milliseconds
-                }).then(response => {
-                    if (response.ok) {
-                        console.log('Image uploaded successfully');
-                        return response.json()
+                        const container = document.createElement("div");
+                        container.classList.add("unavailable_container");
+                        container.style.position = "relative";
+                        container.style.display = "inline-block";
+                        container.style.height = "200px";
+                        container.style.margin = "10px";
+
+                        const input_image = createImageElement(`${DJANGO_MEDIA_URL}${user_id}/${folder_name}${fileName}`, "100%", null);
+                        input_image.style.filter = "grayscale(100%)";
+                        input_image.style.height = "100%";
+
+                        const textOverlay = document.createElement("div");
+                        textOverlay.innerHTML = "This server has not GPU with enough memory to process this image.";
+                        textOverlay.classList.add("unavailable_text");
+                        textOverlay.style.position = "absolute";
+                        textOverlay.style.bottom = "0";
+                        textOverlay.style.left = "0";
+                        textOverlay.style.width = "100%";
+                        textOverlay.style.backgroundColor = "rgba(0, 0, 0, 0.7)";
+                        textOverlay.style.color = "white";
+                        textOverlay.style.padding = "10px";
+
+                        container.append(input_image);
+                        container.append(textOverlay);
+                        output_images.append(container);
                     } else {
-                        console.error('Error uploading image');
-                    }
-                }).then(data => {
-                    loading.replaceWith(output_section);
-                    const output_images = $("#output-images");
-                    console.log(data)
-                    // Create an array to store the file names from data['images']
-                    const dataImageNames = data["images"].map(fileName => {
-                        const file_name = fileName.split("\\").pop();
-                        const name = file_name.split(".")[0];
-                        return name;
-                    });
-                    console.log(dataImageNames)
-                    console.log(fileNames)
-                    // Loop through fileNames and check if each file is present in dataImageNames
-                    for (let i = 0; i < fileNames.length; i++) {
-                        const fileName = fileNames[i].name;
-                        const is_scratch = fileNames[i].scratched;
-                        const is_hd = fileNames[i].hd;
-                        const type = is_hd === 'true' ? '_hd_' : is_scratch === 'true' ? '_scratched_' : '_';
-                        console.log('fileName: ', fileName, 'is_scratch: ', is_scratch, 'is_hd: ', is_hd)
-                        const input_extension = fileName.split(".")[1];
-                        console.log('input_extension: ', input_extension)
-                        const ext = 'png';
-                        const name = fileName.split(".")[0];
-                        if (!dataImageNames.includes(name)) {
-                            const folder_name = 'input' + type + 'images/';
+                        // Image is present in data['images'], assign it to output_strips
+                        const output_strips = document.createElement("div");
+                        output_strips.classList.add("output_strips");
 
+                        const fileBaseName = fileName.split(".")[0];
+                        const fileExtension = fileName.split(".")[1];
 
-                            const container = document.createElement("div");
-                            container.classList.add("unavailable_container");
-                            container.style.position = "relative";
-                            container.style.display = "inline-block";
-                            container.style.height = "200px";
-                            container.style.margin = "10px";
+                        const input_image = createImageElement(`${DJANGO_MEDIA_URL}${user_id}/${fileBaseName}_input.png`, 200, null);
+                        const output_image = createImageElement(`${DJANGO_MEDIA_URL}${user_id}/${fileBaseName}_output.png`, 200, null);
+                        const paragon_image = createImageElement(`${DJANGO_MEDIA_URL}${user_id}/${fileBaseName}_paragon.png`, 200, null);
 
-                            const input_image = createImageElement(`${DJANGO_MEDIA_URL}${user_id}/${folder_name}${fileName}`, "100%", null);
-                            input_image.style.filter = "grayscale(100%)";
-                            input_image.style.height = "100%";
-
-                            const textOverlay = document.createElement("div");
-                            textOverlay.innerHTML = "This server has not GPU with enough memory to process this image.";
-                            textOverlay.classList.add("unavailable_text");
-                            textOverlay.style.position = "absolute";
-                            textOverlay.style.bottom = "0";
-                            textOverlay.style.left = "0";
-                            textOverlay.style.width = "100%";
-                            textOverlay.style.backgroundColor = "rgba(0, 0, 0, 0.7)";
-                            textOverlay.style.color = "white";
-                            textOverlay.style.padding = "10px";
-
-                            container.append(input_image);
-                            container.append(textOverlay);
-                            output_images.append(container);
-                        } else {
-                            // Image is present in data['images'], assign it to output_strips
-                            const output_strips = document.createElement("div");
-                            output_strips.classList.add("output_strips");
-
-                            const fileBaseName = fileName.split(".")[0];
-                            const fileExtension = fileName.split(".")[1];
-
-                            const input_image = createImageElement(`${DJANGO_MEDIA_URL}${user_id}/${fileBaseName}_input.png`, 200, null);
-                            const output_image = createImageElement(`${DJANGO_MEDIA_URL}${user_id}/${fileBaseName}_output.png`, 200, null);
-                            const paragon_image = createImageElement(`${DJANGO_MEDIA_URL}${user_id}/${fileBaseName}_paragon.png`, 200, null);
-
-                            output_strips.onclick = function () {
-                                let enlarged = $("#enlarged");
-                                enlarged.html(`<img src='${input_image.src}' class='enlarged-image'>
+                        output_strips.onclick = function () {
+                            let enlarged = $("#enlarged");
+                            enlarged.html(`<img src='${input_image.src}' class='enlarged-image'>
                                     <img src='${paragon_image.src}' class='enlarged-image'>
                                     <img src='${output_image.src}' class='enlarged-image'>`);
 
-                                enlarge_images();
-                                enlarged.removeClass('hidden_tag');
-                                enlarged.click(function () {
-                                    enlarged.addClass('hidden_tag');
-                                });
-                            };
+                            enlarge_images();
+                            enlarged.removeClass('hidden_tag');
+                            enlarged.click(function () {
+                                enlarged.addClass('hidden_tag');
+                            });
+                        };
 
-                            output_strips.append(input_image);
-                            output_strips.append(paragon_image);
-                            output_strips.append(output_image);
-                            output_images.append(output_strips);
-                        }
+                        output_strips.append(input_image);
+                        output_strips.append(paragon_image);
+                        output_strips.append(output_image);
+                        output_images.append(output_strips);
                     }
+                }
 
-                    const download_button = document.getElementById("download_button");
-                    const restart_button = document.getElementById("restart_button");
-                    download_button.addEventListener("click", async function () {
-                        await downloadAllImages(user_id, protocol, host);
-                    });
-                    restart_button.addEventListener("click", async function () {
+                const download_button = document.getElementById("download_button");
+                const restart_button = document.getElementById("restart_button");
+                download_button.addEventListener("click", async function () {
+                    await downloadAllImages(user_id, protocol, host);
+                });
+                restart_button.addEventListener("click", async function () {
 
-                        reloadPage();
-                    });
-
-                }).catch(error => {
-                    console.error('Error uploading image', error);
-                }).finally(() => {
-                    // Re-enable the start button
-                    startButton.prop('disabled', false);
+                    reloadPage();
                 });
 
+            }).catch(error => {
+                console.error('Error uploading image', error);
+            }).finally(() => {
+                // Re-enable the start button
+                startButton.prop('disabled', false);
             });
 
         });
 
     });
     window.addEventListener('beforeunload', async function (event) {
-
+        event.preventDefault()
+        console.log('beforeunload')
         await deleteTempFolder(user_id, protocol, host);
 
     });
@@ -394,12 +406,12 @@ async function downloadImage(url, filename) {
 async function deleteTempFolder(user_id, protocol, host) {
     try {
         console.log('deleting temp folder', user_id, protocol, host)
-        const response = fetch(`${protocol}://${host}:8000/delete/folder/`, {
+        const response = await fetch(`${protocol}://${host}:8000/delete/folder/`, {
             method: 'DELETE',
             headers: {
-                'X-User-Id': user_id,
-                'Access-Control-Allow-Origin': '*'
+                'Content-Type': 'application/json'
             },
+            body: JSON.stringify({ 'X-User-Id': user_id })
         });
 
         if (response.ok) {
