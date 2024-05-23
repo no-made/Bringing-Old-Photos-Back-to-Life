@@ -13,8 +13,8 @@ from skimage.transform import SimilarityTransform
 from skimage.transform import warp
 from PIL import Image
 import torch.nn.functional as F
-import torchvision as tv
-import torchvision.utils as vutils
+# import torchvision as tv
+# import torchvision.utils as vutils
 import time
 import cv2
 import os

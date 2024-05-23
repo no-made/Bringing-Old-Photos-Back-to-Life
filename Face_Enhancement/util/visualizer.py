@@ -12,9 +12,21 @@ try:
 except ImportError:
     from io import BytesIO  # Python 3.x
 import torchvision.utils as vutils
-from tensorboardX import SummaryWriter
+# from tensorboardX import SummaryWriter
 import torch
 import numpy as np
+
+
+class CustomLogger:
+    def __init__(self, log_dir):
+        self.log_dir = log_dir
+        if not os.path.exists(self.log_dir):
+            os.makedirs(self.log_dir)
+        self.log_file = os.path.join(self.log_dir, 'log.txt')
+
+    def write(self, message):
+        with open(self.log_file, 'a') as log_file:
+            log_file.write(f'{message}\n')
 
 
 class Visualizer:
@@ -32,7 +44,7 @@ class Visualizer:
                 self.log_dir = os.path.join(opt.checkpoints_dir, opt.name, "logs")
                 if not os.path.exists(self.log_dir):
                     os.makedirs(self.log_dir)
-                self.writer = SummaryWriter(log_dir=self.log_dir)
+                self.writer = CustomLogger(log_dir=self.log_dir)
             else:
                 print("hi :)")
                 self.log_dir = os.path.join(opt.checkpoints_dir, opt.name, opt.results_dir)

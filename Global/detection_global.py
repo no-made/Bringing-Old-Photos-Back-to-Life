@@ -2,10 +2,10 @@
 # Licensed under the MIT License.
 
 # import argparse
-# import os
-# import numpy as np
-# import torch
-# import torchvision as tv
+import os
+import numpy as np
+import torch
+import torchvision as tv
 
 import gc
 import warnings

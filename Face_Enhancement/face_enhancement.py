@@ -94,7 +94,7 @@ def enhance_face(result_dir, old_face_folder, old_face_label_folder, name, gpu_i
     print('dataloader', dataloader.dataset)
     model = Pix2PixModel(opt)
     model.eval()
-    visualizer = Visualizer(opt)
+    # visualizer = Visualizer(opt)
 
     # single_save_url = os.path.join(opt.checkpoints_dir, opt.name, opt.results_dir, "each_img")
     single_save_url = os.path.join(opt.results_dir, "each_img")
