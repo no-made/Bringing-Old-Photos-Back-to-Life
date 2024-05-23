@@ -352,7 +352,7 @@ $(document).ready(function () {
     window.addEventListener('beforeunload', async function (event) {
         event.preventDefault()
         console.log('beforeunload')
-        await deleteTempFolder(user_id, protocol, host);
+        await deleteTempFolder(user_id, protocol, hostAddress);
 
     });
 
