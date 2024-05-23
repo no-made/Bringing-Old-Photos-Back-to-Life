@@ -2,6 +2,9 @@ __pycache__/
 *.pyc
 *~
 
+# IDE files
+/.idea/
+
 # other repos cloned with download-weights script
 /Global/detection_models/sync_batchnorm/
 /Global/detection_models/Synchronized-BatchNorm-PyTorch/
@@ -17,3 +20,4 @@ __pycache__/
 /Global/checkpoints/
 
 /.env
+
