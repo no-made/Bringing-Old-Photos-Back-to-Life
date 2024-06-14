@@ -22,14 +22,17 @@ $(document).ready(function () {
 });
 
 function getLandingSection() {
+    let descriptionText;
+    if (choice === "input") {
+        descriptionText = "By simply uploading your photo, whether it has scratches or not, our advanced processing algorithms will work their magic. Once the image processing is complete, you will have a fully restored photo to cherish and share with future generations. Try it out today and rediscover the beauty of your old photographs!";
+    } else if (choice === "gallery") {
+        descriptionText = "Our gallery section provides a curated selection of images for you to experiment with. Each image comes with a 'with scratches' checkbox. If you believe the image has scratches or damage that needs to be repaired, simply check this box. Once you've made your selections, our advanced processing algorithms will work their magic. Try it out today and see the transformation!";
+    }
     return `
         <div id='landing'>
             <h1>Welcome to ReInHerit's Old Photos' Restorer!</h1>
             <p>Our virtual toolkit has been designed to assist museum owners and enthusiasts in effortlessly restoring old photos.</p>
-            <p>By simply uploading your photo, whether it has scratches or not, our advanced processing algorithms will work their magic.
-                Once the image processing is complete, you will have a fully restored photo to cherish and share with future generations.<br>
-                Try it out today and rediscover the beauty of your old photographs!
-            </p>
+            <p>${descriptionText}</p>
             <img id='cover_image' alt='landing image' src='static/assets/images/scratch_detection.png'>
             <a id='start_button' class='square_btn'>START TO RESTORE</a>
         </div>`;
@@ -83,8 +86,8 @@ function getOutputSection() {
                         <li>The second is an image of comparison on the areas most affected by the process.</li>
                         <li>The third image is the output image</li>
                     </ul>
-                    <p>If you click the DOWNLOAD button, the app saves the outputs to your PC and returns to the home page.</p>
-                    <p>If you click the RESTART button, the app returns to the home page and deletes all the processed images.</p>
+                    <p>If you click the DOWNLOAD button, the app saves the outputs to your PC and returns to the home page.<br>
+                    If you click the RESTART button, the app returns to the home page and deletes all the processed images.</p>
                 </div>
             </div>
             <div id='output-images'></div>
@@ -192,135 +195,10 @@ function updateFilesObject(files, selectedFiles) {
 
 function onImageFormSubmit(event, fileList) {
     event.preventDefault();
-    // console.log('files: ', files, 'fileList: ', fileList);
     const {formData, fileNames} = prepareFormData(fileList);
-    // const formData = new FormData();
-    //
-    // fileNames = []
-    //
-    // for (let i = 0; i < fileList.length; i++) {
-    //     const fileName = fileList[i].name;
-    //     const scratched = scratched_images[i] !== '' ? 'true' : 'false';
-    //     const hd = hd_images[i] !== '' ? 'true' : 'false';
-    //     fileNames.push({'name': fileName, 'scratched': scratched, 'hd': hd});
-    //     formData.append('base', fileList[i]);
-    //     formData.append('scratched', scratched);
-    //     formData.append('hd', hd);
-    // }
     showLoadingSection();
-    // const loading_div = $(getLoadingSection());
-    // mainSection.html(loading_div);
-    //
-    // const loading_text = document.getElementById('loading-text');
-    // const loading = $("#loader");
-    // const messages = ['Loading...', 'Please wait...', 'Almost done...', 'Hang tight...', 'Wow, it is quite large!', 'Oh my goodness!', 'What a tremendous size it is!'];
-    // let index = 0;
-    // setInterval(() => {
-    //     loading_text.value = messages[index];
-    //     index = (index + 1) % messages.length;
-    // }, 5000);
-
-    // fetch(`${protocol}://${hostAddress}:8000/upload/image/`, {
-    //     method: 'POST',
-    //     headers: {
-    //         'X-User-Id': user_id,
-    //         'Access-Control-Allow-Origin': '*'
-    //     },
-    //     body: formData,
-    //     timeout: 65000 // timeout in milliseconds
-    // })
-    //     .then(response => {
-    //         if (response.ok) {
-    //             console.log('Image uploaded successfully');
-    //             return response.json();
-    //         } else {
-    //             console.error('Error uploading image');
-    //         }
-    //     })
     uploadImages(formData)
         .then(data => handleUploadSuccess(data, fileList, fileNames))
-        // .then(data => {
-        //     console.log(data)
-        //     const output_section = getOutputSection();
-        //     mainSection.html(output_section);
-        //     document.getElementById('output-section').style.overflowX = 'hidden';
-        //     document.getElementById('output-section').style.position = 'relative';
-        //     const output_images = $("#output-images");
-        //
-        //     const dataImageNames = data["images"].map(fileName => {
-        //         const file_name = fileName.split("\\").pop();
-        //         const name = file_name.split(".")[0];
-        //         console.log(name, file_name)
-        //         return name;
-        //     });
-        //     console.log(dataImageNames)
-        //     for (let i = 0; i < fileList.length; i++) {
-        //         const fileName = fileNames[i].name;
-        //         const is_scratch = fileNames[i].scratched;
-        //         const is_hd = fileNames[i].hd;
-        //         const type = is_hd === 'true' ? '_hd_' : is_scratch === 'true' ? '_scratched_' : '_';
-        //         const input_extension = fileName.split(".")[1];
-        //         const ext = 'png';
-        //         const name = fileName.split(".")[0];
-        //
-        //         if (!dataImageNames.includes(name)) {
-        //             const folder_name = 'input' + type + 'images/';
-        //
-        //             const container = document.createElement("div");
-        //             container.classList.add("unavailable_container");
-        //             container.style.position = "relative";
-        //             container.style.display = "inline-block";
-        //             container.style.height = "200px";
-        //             container.style.margin = "10px";
-        //
-        //             const input_image = createImageElement(`${DJANGO_MEDIA_URL}${user_id}/${folder_name}${fileName}`, "100%", null);
-        //             input_image.style.filter = "grayscale(100%)";
-        //             input_image.style.height = "100%";
-        //
-        //             const textOverlay = document.createElement("div");
-        //             textOverlay.innerHTML = "This server has not GPU with enough memory to process this image.";
-        //             textOverlay.classList.add("unavailable_text");
-        //             textOverlay.style.position = "absolute";
-        //             textOverlay.style.bottom = "0";
-        //             textOverlay.style.left = "0";
-        //             textOverlay.style.width = "100%";
-        //             textOverlay.style.backgroundColor = "rgba(0, 0, 0, 0.7)";
-        //             textOverlay.style.color = "white";
-        //             textOverlay.style.padding = "10px";
-        //
-        //             container.append(input_image);
-        //             container.append(textOverlay);
-        //             output_images.append(container);
-        //         } else {
-        //             const output_strips = document.createElement("div");
-        //             output_strips.classList.add("output_strips");
-        //
-        //             const fileBaseName = fileName.split(".")[0];
-        //
-        //             const input_image = createImageElement(`${DJANGO_MEDIA_URL}${user_id}/${fileBaseName}_input.png`, 200, enlargeImage);
-        //             const output_image = createImageElement(`${DJANGO_MEDIA_URL}${user_id}/${fileBaseName}_output.png`, 200, enlargeImage);
-        //             const paragon_image = createImageElement(`${DJANGO_MEDIA_URL}${user_id}/${fileBaseName}_paragon.png`, 200, enlargeImage);
-        //
-        //
-        //             output_strips.append(input_image);
-        //             output_strips.append(paragon_image);
-        //             output_strips.append(output_image);
-        //             output_images.append(output_strips);
-        //         }
-        //     }
-        //
-        //     const download_button = document.getElementById("download_button");
-        //     const restart_button = document.getElementById("restart_button");
-        //
-        //     download_button.addEventListener("click", async function () {
-        //         await downloadAllImages(user_id, protocol, host);
-        //     });
-        //
-        //     restart_button.addEventListener("click", async function () {
-        //         reloadPage();
-        //     });
-        //
-        // })
         .catch(error => {
             console.error('Error uploading image', error);
         })
@@ -595,8 +473,9 @@ function fetchGalleryImages() {
                 const checkbox1 = createCheckboxElement(`check_${fileName}`, `checkboxChanged('${fileName}', '${counter}', 'scratched')`, "with scratches", "40px");
                 const checkbox2 = createCheckboxElement(`check_hd_${fileName}`, `checkboxChanged('${fileName}', '${i}', 'hd')`, "is HD", "40px");
                 const selectCheckbox = createCheckboxElement(`select_${fileName}`, `selectImage('${filePath}', '${fileName}')`, "Select for processing", "40px");
-
-                imageDiv.append(image, checkbox1, checkbox2, selectCheckbox);
+                checkbox2.querySelector('input').disabled = true;
+                checkbox2.style.display = "none";
+                imageDiv.append(image, checkbox1, selectCheckbox, checkbox2);
                 galleryImages.append(imageDiv);
                 counter++;
             }
