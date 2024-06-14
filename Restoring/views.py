@@ -111,6 +111,25 @@ def upload_image(request):
     differences(input_hd)
     return JsonResponse({'images': processed_images})
 
+@api_view(['POST'])
+@authentication_classes([])
+@permission_classes([])
+def get_gallery_files(request):
+    img_files = []
+    directory1 = 'static/assets/images/test_images/old'
+    directory2 = 'static/assets/images/test_images/old_w_scratch'
+    directories = [directory1, directory2]
+    for directory in directories:
+        if os.path.exists(directory):
+            img_files.append([os.path.join(directory, f) for f in os.listdir(directory) if f.endswith(('.jpg', '.jpeg', '.png', '.gif'))])
+    print(img_files)
+    return JsonResponse(img_files, safe=False)
+
+
+# def load_gallery_image(request, path):
+#     # Assuming images are stored in a directory named 'gallery'
+#     image_path = f'{path}'
+#     return FileResponse(open(image_path, 'rb'))
 
 def modify(image_filename=None, cv2_frame=None, scratched=None):
     # gpu = get_gpu()

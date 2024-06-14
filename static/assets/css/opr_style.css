@@ -18,6 +18,8 @@ body {
 main {
     display: inline;
     position: fixed;
+    width: 100%;
+    height: 100%;
     margin: auto;
     top: 7vh;
 
@@ -217,22 +219,23 @@ h1, h2, h3, h4, h5, h6 {
     position: relative;
 }
 
-#landing, #input-section, #output-section {
+#landing, #input-section, #output-section, #gallery-section {
     height: 88vh;
     width: 100%;
     display: flex;
     position: fixed;
     flex-direction: column;
-    justify-content: center;
+
     align-items: center;
     overflow-y: auto;
 }
 
 #landing {
     margin: 0 auto;
+    justify-content: center;
 }
 
-#input-section, #output-section {
+#input-section, #gallery-section{
     justify-content: space-between;
 }
 
@@ -337,7 +340,7 @@ button[type="submit"] {
 
 
 /*INPUTS & OUTPUTS*/
-#image-form {
+#image-form, #gallery{
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -347,19 +350,19 @@ button[type="submit"] {
     justify-content: space-around;
 }
 
-#selected-images {
+#selected-images, #gallery-images {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-around;
 }
 
-#selected-images div {
+#selected-images div, #gallery-images div {
     display: flex;
     flex-direction: column;
     align-items: baseline;
 }
 
-#selected-images div div {
+#selected-images div div, #gallery-images div div {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -374,7 +377,7 @@ button[type="submit"] {
     margin-bottom: 0;
 }
 
-#selected-images img {
+#selected-images img, #gallery-images img {
     margin: 10px;
 }
 
@@ -396,7 +399,7 @@ button[type="submit"] {
     border-style: none;
 }
 
-#input-description, #output-description {
+#input-description, #output-description, #gallery-description {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -409,7 +412,7 @@ button[type="submit"] {
     justify-content: flex-start;
 }
 
-#input-description h1, #output-description h1 {
+#input-description h1, #output-description h1, #gallery-description h1 {
     display: block;
     padding-right: 1vw;
     margin-bottom: 0;
@@ -428,16 +431,16 @@ button[type="submit"] {
         font-size: 3vw;
     }
 
-    #image-form {
+    #image-form, #gallery {
         height: auto;
     }
 
-    #selected-images {
+    #selected-images, #gallery-images {
         top: 10px;
         position: relative;
     }
 
-    #input-description, #output-description {
+    #input-description, #output-description, gallery-description {
         flex-direction: column;
     }
 
@@ -511,7 +514,12 @@ input[type=file]::file-selector-button:hover {
     justify-content: center;
     align-items: center;
 }
-
+#enlarged img {
+    max-height: 80vh;
+    max-width: 90vw;
+    height: auto;
+    width: auto;
+}
 #loader {
     /* Uncomment this to make it run! */
     /*

@@ -23,7 +23,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('Restoring', include('Restoring.urls')),
     path('', views.landing, name='landing'),
-    # path('api-auth/', include('rest_framework.urls')),
+    path('load/gallery/', views.get_gallery_files, name='get_gallery_files'),
     path('upload/image/', views.upload_image, name='upload_image'),
     path('delete/folder/', views.delete_temp_folder, name='delete_folder'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + \
