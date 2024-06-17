@@ -59,6 +59,8 @@ function getInputSection() {
                 <a id='submit_label' class='square_btn hidden_tag' type='button' onclick="document.getElementById('submit-button').click(); return false;"> PROCESS </a>
                 <button id='submit-button' type='submit' class='hidden_tag'></button>
                 <br>
+                <br>
+                <br>
             </form>
             <div id='enlarged' class='hidden_tag'></div>
         </div>`;
@@ -90,12 +92,17 @@ function getOutputSection() {
                     If you click the RESTART button, the app returns to the home page and deletes all the processed images.</p>
                 </div>
             </div>
-            <div id='output-images'></div>
-            <div id='buttons'>
+            <div id="outputs">
+                <div id='output-images'></div>
+                <div id='buttons'>
                 <a id='download_button' class='square_btn'>DOWNLOAD</a>
-                <p id='or'> or </p>
+                <a id='or'>   </a>
                 <a id='restart_button' class='square_btn'>RESTART</a>
             </div>
+            </div>
+            <br>
+            <br>
+            <br>
             <div id='enlarged' class='hidden_tag'> </div>
         </div>
     </div>`;
@@ -116,7 +123,9 @@ function getGallerySection() {
                 <br>
                 <a id='submit_label' class='square_btn' type='button' onclick="document.getElementById('submit-button').click(); return false;"> PROCESS </a>
                 <button id='submit-button' type='submit' class='hidden_tag'></button>
-                <br><br>
+                <br>
+                <br>
+                <br>
             </div>
             <div id='enlarged' class='hidden_tag'></div>
         </div>`;
@@ -282,8 +291,7 @@ function handleUploadSuccess(data, fileList, fileNames) {
         const scratched = fileNames[i].scratched;
         const hd = fileNames[i].hd;
         const type = hd === 'true' ? '_hd_' : scratched === 'true' ? '_scratched_' : '_';
-        // const inputExtension = name.split(".")[1];
-        // const ext = 'png';
+
         const baseName = name.split(".")[0];
 
         if (!dataImageNames.includes(baseName)) {
@@ -388,12 +396,6 @@ function processFiles(fileList, files) {
 
                 $("#selected-images").append(image_div);
 
-                // checkbox_1.querySelector('input').addEventListener('change', function() {
-                //     checkboxChanged(image_name, i, 'scratched');
-                // });
-                // checkbox_2.querySelector('input').addEventListener('change', function() {
-                //     checkboxChanged(image_name, i, 'hd');
-                // });
             };
             // read the selected file as a data URL
             reader.readAsDataURL(files[i]);
@@ -550,71 +552,6 @@ function enlargeImage(source) {
     });
 }
 
-// async function enlarge_images() {
-//     // Get the width and height of the #enlarged div
-//     const enlargedDiv = document.querySelector('#enlarged');
-//     const enlargedWidth = enlargedDiv.offsetWidth;
-//     const enlargedHeight = enlargedDiv.offsetHeight;
-//     // Get the dimensions of each image and find the largest one
-//     const images = document.querySelectorAll('.enlarged-image');
-//     let largestWidth = 0;
-//     let largestHeight = 0;
-//     let width = 0;
-//     let height = 0;
-//     await imageDimensions(images[0].src).then(dimensions => {
-//         width = dimensions.width
-//         height = dimensions.height
-//
-//         if (width > largestWidth) {
-//             largestWidth = width;
-//         }
-//
-//         if (height > largestHeight) {
-//             largestHeight = height;
-//         }
-//
-//         // Calculate the maximum size for the three images
-//         const maxWidth = (enlargedWidth - 20) / 3;
-//         const maxHeight = enlargedHeight - 20;
-//
-//         // Determine the width and height for each image
-//         let imageWidth = largestWidth;
-//         let imageHeight = largestHeight;
-//
-//         if (imageWidth > maxWidth) {
-//             imageWidth = maxWidth;
-//             imageHeight = (largestHeight / largestWidth) * maxWidth;
-//         }
-//
-//         if (imageHeight > maxHeight) {
-//             imageHeight = maxHeight;
-//             imageWidth = (largestWidth / largestHeight) * maxHeight;
-//         }
-//         // Set the width and height for each image
-//         images.forEach(image => {
-//             image.style.width = imageWidth + 'px';
-//             image.style.height = imageHeight + 'px';
-//         });
-//     })
-// }
-//
-// const imageDimensions = file =>
-//     new Promise((resolve, reject) => {
-//         const img = new Image()
-//
-//         // the following handler will fire after a successful loading of the image
-//         img.onload = () => {
-//             const {naturalWidth: width, naturalHeight: height} = img
-//             resolve({width, height})
-//         }
-//
-//         // and this handler will fire if there was an error with the image (like if it's not really an image or a corrupted one)
-//         img.onerror = () => {
-//             reject('There was some problem with the image.')
-//         }
-//
-//         img.src = file
-//     })
 
 async function downloadAllImages(user, protocol, host) {
     const images = document.querySelectorAll("#output-images img");

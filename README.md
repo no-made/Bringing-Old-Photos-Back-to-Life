@@ -94,17 +94,13 @@ Edit the .env_template file with your own settings and rename it to .env.
   ``` 
   pip install -r requirements.txt
   ``` 
-- ### How to run the servers
+- ### How to run the webapp locally
   Open a terminal and navigate to the folder containing the manage.py file. It should be the same as requirements.txt\
   Type:
   ```
   python manage.py runserver
   ```
-  Open another terminal and navigate to the folder containing the bring_to_life.py file. It should be the same as requirements.txt\
-  Type:
-  ```
-  python bring_to_life.py
-  ```
+  
 - ### Open the home page
   Now open a browser and go to the address:  
   ```
@@ -128,7 +124,7 @@ docker build -t oldphoto .
 1. In a terminal goto the root of the repository
 2. Run 
 ```
-docker run -it --gpus=all --env-file=.env -e HOST=localhost -e PORT=8000 -v media-volume:/app/media:rw -p 8000:8000 oldphoto
+docker run --env-file=.env -p 8000:8000 oldphoto
 ```
 3. Wait till the container is running
 4. Open a browser and go to 

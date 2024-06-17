@@ -21,7 +21,7 @@ main {
     width: 100%;
     height: 100%;
     margin: auto;
-    top: 7vh;
+    top: 9vh;
 
 }
 
@@ -232,14 +232,13 @@ h1, h2, h3, h4, h5, h6 {
 
 #landing {
     margin: 0 auto;
-    justify-content: center;
 }
 
 #input-section, #gallery-section{
     justify-content: space-between;
 }
 
-#output-section {
+#output-section, #landing {
     justify-content: flex-start;
 }
 
@@ -280,7 +279,11 @@ h1, h2, h3, h4, h5, h6 {
     }
 
 }
-
+@media screen and (min-width: 450px) and (max-width: 769px) {
+    #landing h1 {
+        font-size: 3vw;
+    }
+}
 #title-line {
     width: 50%;
     color: #006d9b;
@@ -304,6 +307,7 @@ h1, h2, h3, h4, h5, h6 {
     display: inline-block;
     font-weight: bold;
     padding: 0.25em 0;
+    top: 0.5vh;
     bottom: 5px;
     text-decoration: none;
     color: #006d9b;
@@ -333,14 +337,13 @@ button[type="submit"] {
 
 @media screen and (max-width: 449px) {
     .square_btn {
-        top: 1vh;
         bottom: 1vh
     }
 }
 
 
 /*INPUTS & OUTPUTS*/
-#image-form, #gallery{
+#image-form, #gallery, #outputs {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -395,6 +398,9 @@ button[type="submit"] {
 }
 
 .output_strips img {
+    height: auto;
+    width: auto;
+    max-width: 30vw;
     vertical-align: middle;
     border-style: none;
 }
@@ -429,7 +435,7 @@ button[type="submit"] {
         font-size: 3vw;
     }
 
-    #image-form, #gallery {
+    #image-form, #gallery, #outputs {
         height: auto;
     }
 
@@ -455,21 +461,7 @@ button[type="submit"] {
         height: 100%;
     }
 }
-/* Portrait */
-@media only screen and (orientation: portrait) {
-    .vertical {
-        font-size: 14px;
-    }
-    #input-description h1, #output-description h1, #gallery-description h1 {
-        font-size: 25px;
-    }
-}
-/* Landscape */
-@media only screen and (orientation: landscape) {
-    .vertical {
-        font-size: 14px;
-    }
-}
+
 .hidden_tag {
     visibility: hidden;
     display: none;
@@ -505,12 +497,38 @@ input[type=file]::file-selector-button:hover {
     display: flex;
     flex-direction: row;
     justify-content: space-around;
+    align-items: flex-end;
 }
 
 #or {
     padding: 0 10px;
-}
+    margin-bottom: 0;
+        position: relative;
+    /* bottom: 1vh; */
 
+}
+/* Portrait */
+@media only screen and (orientation: portrait) {
+    .vertical {
+        font-size: 14px;
+        line-height: 1.2;
+    }
+    #input-description h1, #output-description h1, #gallery-description h1 {
+        font-size: 25px;
+    }
+    /*#or {*/
+    /*    top: 1vh;*/
+    /*}*/
+}
+/* Landscape */
+@media only screen and (orientation: landscape) {
+    .vertical {
+        font-size: 14px;
+    }
+    #or {
+        bottom: 1vh;
+    }
+}
 #enlarged {
     display: flex;
     z-index: 1000;
@@ -529,10 +547,6 @@ input[type=file]::file-selector-button:hover {
     width: auto;
 }
 #loader {
-    /* Uncomment this to make it run! */
-    /*
-    /*
-    */
     animation: loader 5s linear infinite;
     position: fixed;
     top: calc(50vh - 20px);
