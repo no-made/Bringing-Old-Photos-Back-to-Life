@@ -1,164 +1,161 @@
 # Reinherit Toolkits: Old Photos' Restorer
 
-This web app is part of the ReInHerit Toolkit.
-
-**Based on Bringing Old Photos Back to Life, CVPR2020 (Oral)**
-
+This web app is part of the ReInHerit Toolkit and is abased on the paper **Bringing Old Photos Back to Life**. It allows you to restore old photos by removing scratches and enhancing the quality of the image. The app is based on the work of Ziyu Wan, Bo Zhang, Dongdong Chen, Pan Zhang, Dong Chen, Jing Liao, and Fang Wen. The paper was presented at the IEEE/CVF Conference on Computer Vision and Pattern Recognition in 2020.
 
 <img src='static/assets/images/HR_result.png'>
 
-## How to run the app
-You can choose to test the app in two ways:
-- creating a python virtual environment
-- using docker
+## Table of Contents
+1. [Overview](#overview)
+2. [How to Run the App](#how-to-run-the-app)
+    - [Prerequisites](#prerequisites)
+    - [Requirements](#requirements)
+3. [Installation](#installation)
+    - [Clone the Repository and Set Up Models](#clone-the-repository-and-set-up-models)
+    - [Manage Environment Variables and Secret Keys](#manage-environment-variables-and-secret-keys)
+4. [Running the App](#running-the-app)
+    - [Using Python Virtual Environment](#using-python-virtual-environment)
+    - [Using Docker](#using-docker)
+5. [Application Usage](#application-usage)
+    - [Landing Page](#landing-page)
+    - [Input Page](#input-page)
+    - [Output Page](#output-page)
+6. [Citation](#citation)
+7. [License](#license)
 
-Follow above prerequisites and instructions paying attention to the parts relating to the chosen method.
+
+## Overview
+ReInHerit Toolkits: Old Photos' Restorer is a web application designed to restore old photos using state-of-the-art deep learning techniques. 
+The application allows users to either upload their own images or select from a gallery of preloaded images. 
+The process is efficient, and the output provides a comparison between the original and restored images. 
+
+## How to run the app
+You can run the app using one of two methods:
+- By creating a Python virtual environment.
+- By using Docker.
+
+Follow the relevant instructions based on your chosen method.
 
 ### Prerequisites
-- **Python 3.10** installed on your machine. If you don't have it, you can download it from the official website: https://www.python.org/downloads/ or follow this online guide: https://realpython.com/installing-python/ to install Python on your machine.
-- **Javascript** enabled on your browser. If not, you can follow this online guide: https://www.enable-javascript.com/
 
-## Requirements
-Depending on which method you have chosen to test the app you must:
-  - **Python Virtual Environment**: we recommend using Conda to manage virtual environments, so check in your terminal or command prompt if you have Conda installed by running the command 
+- **Python 3.10**: Ensure Python 3.10 is installed on your machine. You can download it from the [official website](https://www.python.org/downloads/ ) or follow this [installation guide](https://realpython.com/installing-python/). 
+- **Javascript Enabled**: Make sure JavaScript is enabled in your browser. Follow this [guide](https://www.enable-javascript.com/) if needed. 
+
+### Requirements
+Depending on the method chosen to run the app:
+  - **Python Virtual Environment**: It's recommended to use Conda for managing virtual environments. Check if Conda is installed by running:
     ```
     conda --version 
     ``` 
-    If Conda is not installed, follow the installation instructions from the official Anaconda website: https://docs.anaconda.com/anaconda/install/
-  - **Docker**: you'll need to set up and run Docker on your operating system. If you are not familiar with Docker, please refer to the official documentation [here](https://docs.docker.com/). 
+    If not installed, follow the [Anaconda installation guide](https://docs.anaconda.com/anaconda/install/): 
+  - **Docker**: Ensure Docker is installed and running on your operating system. If you’re new to Docker, refer to the[ official documentation](https://docs.docker.com/).
 
 
-## Clone this repository and install models and checkpoints
-### 1. Clone this repository on your PC. 
-
-### 2. Download the landmark detection pretrained model
-In a terminal go to the project folder and run the following code:
-```
-cd Face_Detection/
-wget http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2
-bzip2 -d shape_predictor_68_face_landmarks.dat.bz2
-cd ../
-```
-
-### 3. Download the pretrained model
-Put the file _**Face_Enhancement/checkpoints.zip**_ under **_./Face_Enhancement,_** and put the file **_Global/checkpoints.zip_** under **_./Global_**. Then unzip them respectively.
-Use this code:
-```
-cd Face_Enhancement/
-wget https://github.com/microsoft/Bringing-Old-Photos-Back-to-Life/releases/download/v1.0/face_checkpoints.zip
-unzip face_checkpoints.zip
-cd ../
-cd Global/
-wget https://github.com/microsoft/Bringing-Old-Photos-Back-to-Life/releases/download/v1.0/global_checkpoints.zip
-unzip global_checkpoints.zip
-cd ../
-```
-### 4. Manage secret keys
-A **Django secret key** is required, **Google Analytics** is optional. \
-Edit the .env_template file with your own settings and rename it to .env. 
-#### ___Django secret key___: 
-1. You can generate one by typing in a terminal: <br> 
+## Installation
+### Clone the Repository and Set Up Models 
+1. Clone this repository on your local machine
+2. Download the Landmark Detection Pretrained Model:
+    ```
+    cd Face_Detection/
+    wget http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2
+    bzip2 -d shape_predictor_68_face_landmarks.dat.bz2
+    cd ../
+    ```
+3. Download the Pretrained Models:
+   - Place the Face_Enhancement/checkpoints.zip under ./Face_Enhancement/.
+   - Place the Global/checkpoints.zip under ./Global/.
+   - Unzip them using:
+    ```
+    cd Face_Enhancement/
+    wget https://github.com/microsoft/Bringing-Old-Photos-Back-to-Life/releases/download/v1.0/face_checkpoints.zip
+    unzip face_checkpoints.zip
+    cd ../
+    cd Global/
+    wget https://github.com/microsoft/Bringing-Old-Photos-Back-to-Life/releases/download/v1.0/global_checkpoints.zip
+    unzip global_checkpoints.zip
+    cd ../
+    ```
+### Manage Environment Variables and Secret Keys
+#### ___1. Django secret key___: 
+- Generate a Django secret key: 
    ```
    python getYourDjangoKey.py
    ```
-2. copy and paste the generated key in the DJANGO_KEY field of the .env file. 
-
-     <br>
-#### ___Google Analytics key___
-1. Go to https://analytics.google.com/analytics/web/ and click on the "Get Started for Free" button.
-2. Sign in with your Google account.
-3. Follow the instructions to create a new account.
-4. Once you have created your account, you will be redirected to the dashboard. Click on the "Admin" button in the top left corner.
-5. Click on the "Create Property" button.
-6. Select "Web" as the property type and click on the "Continue" button.
-7. Enter a name for your property and click on the "Create" button.
-8. Click on the "Tracking Info" button.
-9. Click on the "Tracking Code" button.
-10. Copy the "Tracking ID" and paste it in the GA_KEY field of the .env file.
+- Copy the generated key and paste it into the **DJANGO_KEY** field of the **.env** file. 
 
 
-## How to manage python virtual environment
-- ### Create a virtual environment and install the requirements
-  Open a terminal and navigate to the folder containing the requirements.txt file. \
-  Create a virtual environment by typing: 
+#### ___2. Google Analytics key (optional)___
+- Follow the steps [here](https://analytics.google.com/analytics/web/) to create a Google Analytics property and obtain the **GA_KEY**.
+- Paste the **GA_KEY** into the **.env** file.
+
+#### ___3. Browse or Gallery mode___
+- Choose between gallery mode or browse mode by setting the MODE in the **.env** file:
   ```
-  conda create --name my_env_name python=3.10
+  MODE=gallery  # or MODE=input
   ```
-  Activate the environment by typing:
-  ``` 
-  conda activate my_env_name
-  ```
-  <p>Notice: Replace my_env_name with a relevant name for your environment.
-  <p>You have successfully activated your virtual environment. To install the Python libraries required for your project, run the following command while inside the virtual environment: 
+
+## Running the App
+### Using Python Virtual Environment
+1. Create a Virtual Environment and Install Requirements:
+    - Navigate to the folder with requirements.txt:  
+      ```
+      conda create --name my_env_name python=3.10
+      conda activate my_env_name
+      pip install -r requirements.txt
+      ``` 
+    - Replace my_env_name with your desired environment name.
+2. Run the Web App Locally:
+    - Navigate to the folder containing manage.py and run:
+      ```
+      python manage.py runserver
+      ```
+3. Open the Home Page:
+    - Open a browser and go to the address:  
+      ```
+      http://localhost:8000
+      ```
+
+### Using Docker
+
+1. Build the Docker image:
+   - In the root of the repository, run:
+     ```
+     docker build -t oldphoto .
+     ```
+2. Run the Docker Container:
+   - In the root of the repository, run:
+     ```
+     docker run --env-file=.env -p 8000:8000 oldphoto
+     ```
+3. Open the Home Page:
+   - Open a browser and go to the address: 
+     ```
+     http://localhost:8000
+     ```
+
+## Application Usage
+
+### Landing Page
+Click on the '**Start to restore**' button to begin the demo
+
+### Input Page
+- **Gallery Scenario**:
+  - Select images from the gallery to restore.
+  - Use the '**with scratches**' checkbox for damaged images. 
+  - Click on the **PROCESS** button to start the restoration process.
+- **Browse Scenario**: 
+  - Click **BROWSE** button to upload your images.
+  - Select images and use checkboxes for scratches or high DPI.
+  - Click on the **PROCESS** button to start the restoration process.
   
-  ``` 
-  pip install -r requirements.txt
-  ``` 
-- ### How to run the webapp locally
-  Open a terminal and navigate to the folder containing the manage.py file. It should be the same as requirements.txt\
-  Type:
-  ```
-  python manage.py runserver
-  ```
-  
-- ### Open the home page
-  Now open a browser and go to the address:  
-  ```
-  http://localhost:8000
-  ```
-
-
-## Docker
-
-### Build the Dockerfile:
-
-1. In a terminal goto the root of the repository
-2. Run this line of code:
-```
-docker build -t oldphoto .
-```
-3. This will take a while. Wait till the build is finished
-4. If the build stops with an error, try to run it again.
-
-### Run the Docker container:
-1. In a terminal goto the root of the repository
-2. Run 
-```
-docker run --env-file=.env -p 8000:8000 oldphoto
-```
-3. Wait till the container is running
-4. Open a browser and go to 
-```
-http://localhost:8000
-```
-5. You should see the demo page
-
-## How it works
-
-### LANDING PAGE
-Click or '**Start to restore**' button to start the demo
-
-### INPUT PAGE
-- Click on **BROWSE** button to select the images to upload. You can upload multiple images at the same time. After uploading, you can click on the image to see the original image and the restored image. 
-- Select the image or images you want to restore and click Open.
-- The selected images will be shown in the browser with 2 checkbox buttons. 
-  - If a photo has scratches or damage that needs to be repaired, select the '**with scratches**' checkbox. 
-  - And if the image with scratches has a DPI (dots per inch) of 300 or higher, select the checkbox labeled '**is HD**'.
-- If you need, you can select again on  **BROWSE** button to upload more images from the same folder.
-- When you are ok with the selection, click on the **PROCESS** button to start the restoration process.<br>
-
 Note: The processing time depends on the number of images you upload. The more images you upload, the longer it will take to process.
 
-### OUTPUT PAGE
-- The restored images will be shown in the browser.
-- For every image, will be shown the original image, the restored image, and, between them, a comparison on the areas most affected by the process.
-- Clicking on **DOWNLOAD** button the browser will download the restored images and bring you back to the landing page.
-- Clicking on **RESTART** button will bring you back to the landing. **ATTENTION**- You will loose all your processed images!!!
+### Output Page
+- View the original and restored images, along with a comparison.
+- Download the restored images or restart the process.
 
 
 
 ## Citation
-
 
 ```bibtex
 @inproceedings{wan2020bringing,

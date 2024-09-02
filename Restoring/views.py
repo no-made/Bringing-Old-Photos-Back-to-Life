@@ -43,13 +43,19 @@ def landing(request):
     host = settings.HOST
     port = settings.PORT
     GA_MEASUREMENT_ID = settings.GA_MEASUREMENT_ID
+    MODE = settings.MODE
     print(f'PROTOCOL: {protocol}')
     print(f'HOST: {host}')
     print(f'PORT: {port}')
     print(f'SECRET_KEY: {settings.SECRET_KEY}')
     print(f'GA_MEASUREMENT_ID_VIEWS: {GA_MEASUREMENT_ID}')
     request.session['user_id'] = user_id  # Store the user ID in the session
-    return render(request, 'landing.html', {'user_id': user_id, 'protocol': protocol, 'host': host, 'port': port, 'GA_MEASUREMENT_ID': GA_MEASUREMENT_ID})
+    return render(request, 'landing.html', {'user_id': user_id, 'protocol': protocol, 'host': host,
+                                            'port': port, 'GA_MEASUREMENT_ID': GA_MEASUREMENT_ID, 'MODE': MODE})
+
+
+def get_mode(request):
+    return JsonResponse({'mode': settings.MODE})
 
 @api_view(['DELETE'])
 @authentication_classes([])

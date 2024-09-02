@@ -8,7 +8,15 @@ let fileList = [];
 let mainSection, user_id, protocol, hostAddress, port, host, fileNames;
 $(document).ready(function () {
     ({user_id, port, host, protocol, location: {hostname: hostAddress}} = window);
-    console.log('protocol:', protocol, 'host:', host, 'port:', port, 'user_id:', user_id);
+    // let choice;
+
+    fetch('/get_mode/')
+        .then(response => response.json())
+        .then(data => {
+            choice = data.mode;
+            // rest of your code that depends on the `choice` variable
+        });
+    console.log('protocol:', protocol, 'host:', host, 'port:', port, 'user_id:', user_id), 'mode: ', choice;
 
     mainSection = $("#central");
     mainSection.html(getLandingSection());
@@ -337,10 +345,16 @@ function displayUnavailableImage(outputImages, baseName, name, type) {
 function displayProcessedImages(outputImages, baseName, name) {
     const outputStrips = document.createElement("div");
     outputStrips.classList.add("output_strips");
+    let extension = name.split(".").pop();
+    if (extension === "jpeg") {
+        extension = "jpeg";
+    } else {
+        extension = "png";
+    }
 
-    const inputImage = createImageElement(`${DJANGO_MEDIA_URL}${user_id}/${baseName}_input.png`, 200, enlargeImage);
-    const outputImage = createImageElement(`${DJANGO_MEDIA_URL}${user_id}/${baseName}_output.png`, 200, enlargeImage);
-    const paragonImage = createImageElement(`${DJANGO_MEDIA_URL}${user_id}/${baseName}_paragon.png`, 200, enlargeImage);
+    const inputImage = createImageElement(`${DJANGO_MEDIA_URL}${user_id}/${baseName}_input.${extension}`, 200, enlargeImage);
+    const outputImage = createImageElement(`${DJANGO_MEDIA_URL}${user_id}/${baseName}_output.${extension}`, 200, enlargeImage);
+    const paragonImage = createImageElement(`${DJANGO_MEDIA_URL}${user_id}/${baseName}_paragon.${extension}`, 200, enlargeImage);
 
     outputStrips.append(inputImage);
     outputStrips.append(paragonImage);
